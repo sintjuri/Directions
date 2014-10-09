@@ -10,7 +10,6 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.animation.Animation;
 import android.view.animation.RotateAnimation;
 import android.widget.ImageView;
@@ -20,19 +19,17 @@ public class MainActivity extends Activity implements SensorEventListener {
 
     // define the display assembly compass picture
     private ImageView image;
-
-    // record the compass picture angle turned
-    private double currentDegree = 0f;
-
     private TextView tvHeading;
 
-    private float azimut;
-    private float[] gravity;
-    private float[] geoMagnetic;
+    private float[] gravity = new float[3];
+    private float[] geoMagnetic = new float[3];
+    private boolean mLastAccelerometerSet = false;
+    private boolean mLastMagnetometerSet = false;
 
     private SensorManager mSensorManager;
     private Sensor accelerometer;
     private Sensor magnetometer;
+    private double mCurrentDegree;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,13 +85,50 @@ public class MainActivity extends Activity implements SensorEventListener {
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-        /*get gravity value arrays from Accelerometer*/
-        if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER)
-            gravity = event.values;
+        double azimut = calculateAzimut(event);
+
+        if (azimut != 0) {
+            tvHeading.setText("Heading: " + azimut + " degrees");
+            rotateImageArroundCenter(azimut);
+        }
+    }
+
+    private void rotateImageArroundCenter(double azimut) {
+        /*Matrix matrix = new Matrix();
+        image.setScaleType(ImageView.ScaleType.MATRIX);   //required
+
+        matrix.setRotate((float) (-1 * azimut), image.getDrawable().getBounds().width() / 2, image.getDrawable().getBounds().height() / 2);
+        image.setImageMatrix(matrix);*/
+
+        RotateAnimation ra = new RotateAnimation(
+                (float)mCurrentDegree,
+                (float)-azimut,
+                Animation.RELATIVE_TO_SELF, 0.5f,
+                Animation.RELATIVE_TO_SELF,
+                0.5f);
+
+        ra.setDuration(50);
+
+        ra.setFillAfter(true);
+
+        image.startAnimation(ra);
+        mCurrentDegree = -azimut;
+    }
+
+    private double calculateAzimut(SensorEvent event) {
+    /*get gravity value arrays from Accelerometer*/
+        if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER){
+            System.arraycopy(event.values, 0, gravity, 0, event.values.length);
+            mLastAccelerometerSet = true;
+        }
         /*get gravity value arrays from Magnet*/
-        if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD)
-            geoMagnetic = event.values;
-        if (gravity != null && geoMagnetic != null) {
+        if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
+            System.arraycopy(event.values, 0, geoMagnetic, 0, event.values.length);
+            mLastMagnetometerSet = true;
+        }
+        if (mLastAccelerometerSet && mLastMagnetometerSet){
+            mLastAccelerometerSet = false;
+            mLastMagnetometerSet = false;
         /*Rotation matrix and Inclination matrix*/
             float R[] = new float[9];
             float I[] = new float[9];
@@ -111,19 +145,10 @@ public class MainActivity extends Activity implements SensorEventListener {
          /* Orientation has azimuth, pitch and roll */
                 float orientation[] = new float[3];
                 SensorManager.getOrientation(R, orientation);
-                azimut = orientation[0];
+                return (float)(Math.toDegrees(orientation[0])+360)%360;
             }
         }
-
-
-        tvHeading.setText("Heading: " + Double.toString(Math.toDegrees(azimut)) + " degrees");
-
-        Matrix matrix=new Matrix();
-        image.setScaleType(ImageView.ScaleType.MATRIX);   //required
-        matrix.postRotate((float) (-1*Math.toDegrees(azimut)), image.getDrawable().getBounds().width()/2, image.getDrawable().getBounds().height()/2);
-        image.setImageMatrix(matrix);
-        currentDegree = Math.toDegrees(azimut);
-
+        return 0;
     }
 
 
