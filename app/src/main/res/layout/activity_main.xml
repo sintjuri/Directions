@@ -22,38 +22,3 @@
         android:src="@drawable/img_compass" />
 
 </RelativeLayout>
-
-    <!--<?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
-    <Button
-        android:id="@+id/btnSensList"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:onClick="onClickSensList"
-        android:text="@string/list">
-    </Button>
-    <Button
-        android:id="@+id/btnSensLight"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_toRightOf="@id/btnSensList"
-        android:onClick="onClickSensLight"
-        android:text="@string/light">
-    </Button>
-    <ScrollView
-        android:id="@+id/scroll"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/btnSensList">
-        <TextView
-            android:id="@+id/tvText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content">
-        </TextView>
-    </ScrollView>
-</RelativeLayout>-->
-
