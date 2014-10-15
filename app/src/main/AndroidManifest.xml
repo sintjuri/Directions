@@ -4,13 +4,15 @@
 
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
+
 
     <application
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@style/AppTheme" >
-        <activity android:name="MainActivity">
+        android:theme="@style/AppTheme">
+        <activity android:name="MainActivity" android:screenOrientation="portrait">
             <!-- An IntentFilter tells the system when it should use your
                  activity.  This allows the user to get to your activity
                  without someone having to explicitly know to launch your

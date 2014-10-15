@@ -11,7 +11,7 @@
         android:layout_centerHorizontal="true"
         android:layout_marginBottom="40dp"
         android:layout_marginTop="20dp"
-        android:text="Heading: 0.0" />
+         />
 
     <RelativeLayout
         android:layout_width="fill_parent"

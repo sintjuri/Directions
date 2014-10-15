@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Направления</string>
+    <string name="accelerometer_not_available">Акселерометр не доступен</string>
+    <string name="magnetometer_not_available">магнетометр не доступен</string>
+    <string name="gps_settings">Настройки GPS</string>
+    <string name="enable_gps">GPS выключен. Вы хотите включить GPS?</string>
+    <string name="settings">Настройки</string>
+    <string name="cancel">Отменить</string>
+    <string name="distance">Расстояние: %1$d м</string>
+</resources>
