@@ -8,5 +8,8 @@
     <string name="enable_gps">GPS выключен. Вы хотите включить GPS?</string>
     <string name="settings">Настройки</string>
     <string name="cancel">Отменить</string>
-    <string name="distance">Расстояние: %1$d м</string>
+    <string name="distance">Расстояние до %1$s: %2$.0f м</string>
+    <string name="defining">Определение позиции</string>
+    <string name="load">Загрузить новый список</string>
+
 </resources>

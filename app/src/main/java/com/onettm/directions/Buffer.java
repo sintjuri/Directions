@@ -1,18 +1,12 @@
 package com.onettm.directions;
 
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Queue;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
-/**
- * Created by sintyaev on 13.10.14.
- */
-abstract public class Buffer<T> {
+
+abstract public class Buffer<T extends Object> {
     protected Queue<T> data;
     private int size;
-    private boolean rendered = false;
 
     public Buffer(int size){
         this.size = size;
@@ -26,14 +20,10 @@ abstract public class Buffer<T> {
         data.offer(element);
     }
 
-    public T get(){
+    private T get(){
         return data.poll();
     }
 
-    public boolean isRendered() {
-        return rendered || data.size() == 0;
-    }
-
-    abstract public T getAverageValue();
+    abstract T getAveragedValue();
 
 }

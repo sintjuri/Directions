@@ -8,5 +8,9 @@
     <string name="enable_gps">GPS is not enabled. Do you want to go to settings menu?</string>
     <string name="settings">Settings</string>
     <string name="cancel">Cancel</string>
-    <string name="distance">Distance: %1$d m</string>
+    <string name="distance">Distance to %1$s: %2$.0f m</string>
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="defining">Position defining</string>
+    <string name="load">Load the list</string>
+
 </resources>

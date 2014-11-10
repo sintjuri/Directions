@@ -1,63 +1,41 @@
 package com.onettm.directions;
 
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
-import android.hardware.SensorManager;
-import android.location.Location;
-import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.provider.Settings;
-import android.util.Log;
+
+import android.support.v4.app.FragmentActivity;
+import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.RotateAnimation;
+import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
-public class MainActivity extends Activity implements SensorEventListener, LocationListener {
-    private static final double ROTATION_SPEED_KOEF = 0.72;
+import java.util.List;
+
+public class MainActivity extends FragmentActivity implements ListDialog.Callbacks {
+    private static final double ROTATION_SPEED_KOEF = 0.36;
+    private static final float NEW_DECISION_DISTANCE = 1000;
     // define the display assembly compass picture
-    private ImageView image;
+    private ImageView compass;
     private ImageView pointer;
     private TextView tvHeading;
+    private Button notificationButton;
 
-    private float[] gravity = new float[3];
-    private float[] geoMagnetic = new float[3];
-    private boolean mLastAccelerometerSet = false;
-    private boolean mLastMagnetometerSet = false;
+    private SensorListener sensorListener;
+    private Model model;
+    private Controller controller;
 
-    private SensorManager mSensorManager;
-    private Sensor accelerometer;
-    private Sensor magnetometer;
-    private double magneticCurrentDegree;
-    private double pointerCurrentDegree;
-
-    private AzimutBuffer azimutBuffer = new AzimutBuffer(5);
-
-    // flag for GPS status
-    boolean isGPSEnabled = false;
-
-    // flag for network status
-    boolean isNetworkEnabled = false;
-
-    private LocationBuffer locationBuffer = new LocationBuffer(5);
-
-    // The minimum distance to change Updates in meters
-    private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 1; // 1 meters
-
-    // The minimum time between updates in milliseconds
-    private static final long MIN_TIME_BW_UPDATES = 500;
-
-    // Declaring a Location Manager
-    protected LocationManager locationManager;
-
-    private Location cicusLocation = new Location("");
+    private float magneticCurrentDegree;
+    private float pointerCurrentDegree;
+    private boolean notificationIsActive = false;
 
 
     @Override
@@ -65,44 +43,58 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        image = (ImageView) findViewById(R.id.imageViewCompass);
+        compass = (ImageView) findViewById(R.id.imageViewCompass);
         pointer = (ImageView) findViewById(R.id.imageViewPointer);
 
         // TextView that will tell the user what degree is he heading
         tvHeading = (TextView) findViewById(R.id.tvHeading);
+        tvHeading.setText(getString(R.string.defining));
+        ImageButton listButton = (ImageButton) findViewById(R.id.listButton);
 
-        // initialize your android device sensor capabilities
-        mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
-        locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-        accelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-        if (accelerometer == null) {
+        listButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                openListLocations();
+            }
+        });
+
+        notificationButton = (Button) findViewById(R.id.notificationButton);
+        notificationButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                openListLocations();
+            }
+        });
+
+        model = new Model();
+        controller = new Controller();
+        sensorListener = new SensorListener(this, model);
+        if (!sensorListener.isAccelerometerAvailable()) {
             new AlertDialog.Builder(this)
                     .setMessage(R.string.accelerometer_not_available)
                     .show();
         }
-        magnetometer = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
-        if (magnetometer == null) {
+
+        if (!sensorListener.isMagnetometerAvailable()) {
             new AlertDialog.Builder(this)
                     .setMessage(R.string.magnetometer_not_available)
                     .show();
         }
-        // getting GPS status
-        isGPSEnabled = locationManager
-                .isProviderEnabled(LocationManager.GPS_PROVIDER);
 
-        // getting network status
-        isNetworkEnabled = locationManager
-                .isProviderEnabled(LocationManager.NETWORK_PROVIDER);
-
-
-        if (!isGPSEnabled) {
+        if (!sensorListener
+                .isProviderEnabled(LocationManager.GPS_PROVIDER)) {
             showSettingsAlert();
         }
+    }
 
-        double circusLatitude = 51.656608;
-        cicusLocation.setLatitude(circusLatitude);
-        double circusLongitude = 39.185975;
-        cicusLocation.setLongitude(circusLongitude);
+    private void openListLocations() {
+        if(model.getCurrentLocation()!=null) {
+            android.app.FragmentManager fm = getFragmentManager();
+            ListDialog listDialog = new ListDialog();
+            listDialog.show(fm, "list_dialog");
+        }else{
+            Toast.makeText(this, getString(R.string.defining), Toast.LENGTH_SHORT).show();
+        }
     }
 
     /**
@@ -142,75 +134,23 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
     @Override
     protected void onResume() {
         super.onResume();
-
         // for the system's orientation sensor registered listeners
-
-        mSensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_NORMAL);
-        mSensorManager.registerListener(this, magnetometer, SensorManager.SENSOR_DELAY_NORMAL);
-
-        // First get location from Network Provider
-        if (isNetworkEnabled) {
-            locationManager.requestLocationUpdates(
-                    LocationManager.NETWORK_PROVIDER,
-                    MIN_TIME_BW_UPDATES,
-                    MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
-            if (locationManager != null) {
-                Location location = locationManager
-                        .getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-                if(location!=null) {
-                    locationBuffer.add(location);
-                }
-            }
-        }
-        // if GPS Enabled get lat/long using GPS Services
-        if (isGPSEnabled) {
-
-            locationManager.requestLocationUpdates(
-                    LocationManager.GPS_PROVIDER,
-                    MIN_TIME_BW_UPDATES,
-                    MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
-            if (locationManager != null) {
-                Location location = locationManager
-                        .getLastKnownLocation(LocationManager.GPS_PROVIDER);
-                if(location!=null) {
-                    locationBuffer.add(location);
-                }
-            }
-
-        }
+        sensorListener.registerListener();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-
         // to stop the listener and save battery
-        mSensorManager.unregisterListener(this);
-        stopUsingGPS();
+        sensorListener.unregisterListener();
     }
 
-    @Override
-    public void onAccuracyChanged(Sensor sensor, int accuracy) {
-        // Do something here if sensor accuracy changes.
-        // You must implement this callback in your code.
-    }
-
-    @Override
-    public void onSensorChanged(SensorEvent event) {
-        Double azimut = calculateAzimut(event);
-        if(azimut!=null) {
-            azimutBuffer.add(azimut);
-            rotateImagesArroundCenter();
-        }
-
-    }
-
-    private RotateAnimation createRotateAnimation(float fromDegree, float toDegree){
+    private RotateAnimation createRotateAnimation(float fromDegree, float toDegree) {
 
         fromDegree = (fromDegree % 360) + 360;
         toDegree = (toDegree % 360) + 360;
 
-        if (Math.abs(toDegree - fromDegree)>180){
+        if (Math.abs(toDegree - fromDegree) > 180) {
             toDegree = 360 - toDegree;
         }
 
@@ -221,112 +161,72 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
                 Animation.RELATIVE_TO_SELF,
                 0.5f);
 
-        raImage.setDuration(Math.round(Math.abs(toDegree - fromDegree)*ROTATION_SPEED_KOEF));
+        raImage.setDuration(Math.round(Math.abs(toDegree - fromDegree) * ROTATION_SPEED_KOEF));
         raImage.setFillAfter(true);
         return raImage;
     }
 
-    private void rotateImagesArroundCenter() {
-        /*Matrix matrix = new Matrix();
-        image.setScaleType(ImageView.ScaleType.MATRIX);   //required
+    private void doRender() {
+        float azimut = controller.calculateAzimut(model);
+        RotateAnimation raImage = createRotateAnimation(
+                magneticCurrentDegree,
+                -azimut);
 
-        matrix.setRotate((float) (-1 * azimut), image.getDrawable().getBounds().width() / 2, image.getDrawable().getBounds().height() / 2);
-        image.setImageMatrix(matrix);*/
+        this.compass.startAnimation(raImage);
+        magneticCurrentDegree = -azimut;
 
-        if ((!azimutBuffer.isRendered())) {
-            RotateAnimation raImage = createRotateAnimation(
-                    (float) magneticCurrentDegree,
-                    (float) -azimutBuffer.getAverageValue());
-
-            this.image.startAnimation(raImage);
-            magneticCurrentDegree = -azimutBuffer.getAverageValue();
-
-            this.image.startAnimation(raImage);
-            magneticCurrentDegree = -azimutBuffer.getAverageValue();
-
-        }
-        if ((!locationBuffer.isRendered()) && (!azimutBuffer.isRendered())) {
-            float bearing = locationBuffer.getAverageValue().bearingTo(cicusLocation);
+        if((model.getCurrentLocation() != null) && (model.getDestinationName() != null)){
+            float bearing = controller.calculateBearing(model);
             RotateAnimation raPointer = createRotateAnimation(
-                    (float) pointerCurrentDegree,
-                    (float) (bearing - azimutBuffer.getAverageValue()));
+                    pointerCurrentDegree,
+                    (bearing - azimut));
 
             this.pointer.startAnimation(raPointer);
-            pointerCurrentDegree = bearing -  azimutBuffer.getAverageValue();
+            pointerCurrentDegree = bearing - azimut;
 
-            this.pointer.startAnimation(raPointer);
-            pointerCurrentDegree = bearing -  azimutBuffer.getAverageValue();
+            if(pointer.getVisibility() != View.VISIBLE){
+                pointer.setVisibility(View.VISIBLE);
+            }
 
+            tvHeading.setText(getString(R.string.distance, model.getDestinationName(), controller.calculateDistance(model.getCurrentLocation(), model.getDestinationLocation())));
         }
-        if ((!locationBuffer.isRendered()) && (!azimutBuffer.isRendered())) {
-            tvHeading.setText(getString(R.string.distance, locationBuffer.getAverageValue().distanceTo(cicusLocation)));
-            //tvHeading.setText("cur location: " + location.getLatitude() + " " + location.getLongitude());
-        }
-    }
 
-    private Double calculateAzimut(SensorEvent event) {
-    /*get gravity value arrays from Accelerometer*/
-        if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
-            System.arraycopy(event.values, 0, gravity, 0, event.values.length);
-            mLastAccelerometerSet = true;
-        }
-        /*get gravity value arrays from Magnet*/
-        if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
-            System.arraycopy(event.values, 0, geoMagnetic, 0, event.values.length);
-            mLastMagnetometerSet = true;
-        }
-        if (mLastAccelerometerSet && mLastMagnetometerSet) {
-            mLastAccelerometerSet = false;
-            mLastMagnetometerSet = false;
-        /*Rotation matrix and Inclination matrix*/
-            float R[] = new float[9];
-            float I[] = new float[9];
-        /* Compute the inclination matrix I as well as the rotation matrix R transforming a vector from the device
-        coordinate system to the world's coordinate system
-        R and I [Length 9]
-        gravity vector expressed in the device's coordinate [Length 3]
-        geoMagnetic vector expressed in the device's coordinate[Length 3]
-        */
-            boolean success = SensorManager.getRotationMatrix(R, I,
-                    gravity, geoMagnetic);
 
-            if (success) {
-         /* Orientation has azimuth, pitch and roll */
-                float orientation[] = new float[3];
-                SensorManager.getOrientation(R, orientation);
-                return (Math.toDegrees(orientation[0]) + 360) % 360;
+
+        if((controller.calculateDistance(model.getCurrentLocation(), model.getDecisionPoint())>NEW_DECISION_DISTANCE) && (!notificationIsActive)){
+            if(isNewTargetLocationsAvailable()){
+                notificationIsActive = true;
+                notificationButton.setVisibility(View.VISIBLE);
             }
         }
-        return null;
+
     }
 
 
-    @Override
-    public void onLocationChanged(Location location) {
-        if(location!=null) {
-            locationBuffer.add(location);
-            rotateImagesArroundCenter();
-        }
+    public void currentLocationUpdated() {
+        doRender();
     }
 
-    @Override
-    public void onStatusChanged(String provider, int status, Bundle extras) {
-
+    public void phonePositionUpdated() {
+        doRender();
     }
 
     @Override
-    public void onProviderEnabled(String provider) {
-
+    public List<LocationItem> getData() {
+        return controller.getData(model);
     }
 
     @Override
-    public void onProviderDisabled(String provider) {
+    public void onItemSelected(LocationItem locationItem) {
+
+        model.setDecisionPoint(locationItem.getCurrentLocation());
+        model.setDecisionPointLocationItems(getData());
+        model.setDestinationLocation(locationItem.getLocation());
+        model.setDestinationName(locationItem.getName());
 
     }
 
-    public void stopUsingGPS() {
-        if (locationManager != null) {
-            locationManager.removeUpdates(this);
-        }
+    private boolean isNewTargetLocationsAvailable() {
+        return controller.isNewTargetLocationsAvailable(model);
     }
 }
