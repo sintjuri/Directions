@@ -1,3 +1,9 @@
+/*******************************************************************************
+ * NiceCompass
+ * Released under the BSD License. See README or LICENSE.
+ * Copyright (c) 2011, Digital Lizard (Oscar Key, Thomas Boby)
+ * All rights reserved.
+ ******************************************************************************/
 package com.onettm.directions;
 
 import android.content.Context;
@@ -10,148 +16,145 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 
-
 public class SensorListener implements SensorEventListener, LocationListener {
-
+	/** constants **/
     // The minimum distance to change Updates in meters
     private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 1; // 1 meters
-    private static final int MIN_ACCURACY = 50;
-
     // The minimum time between updates in milliseconds
     private static final long MIN_TIME_BW_UPDATES = 500;
-    private Context context;
+    private static final int MIN_ACCURACY = 50;
 
-    private SensorManager mSensorManager;
-    private Sensor accelerometer;
-    private Sensor magnetometer;
-    // Declaring a Location Manager
-    protected LocationManager locationManager;
+	
+	/** variables **/
+	private final LocationManager locationManager;
 
+	private final SensorManager sensorManager;
+	private final Sensor magSensor;
+	private final Sensor accelSensor;
+	private boolean sensorsRegistered; // stores the event listener state
 
     private Model model;
 
-    public SensorListener(Context context, Model model) {
-        this.model = model;
-        this.context = context;
-        // initialize your android device sensor capabilities
-        mSensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
-        mSensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
-        accelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-        magnetometer = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
-        locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
-    }
+
+	public void unregisterSensors() {
+		if(sensorsRegistered){
+			// unregister our sensor listeners
+			locationManager.removeUpdates(this);
+			sensorManager.unregisterListener(this, magSensor);
+			sensorManager.unregisterListener(this, accelSensor);
+			model.setStatus(Model.STATUS_INACTIVE);
+			sensorsRegistered = false; // flag the sensors as unregistered
+		}
+	}
 
     public boolean isAccelerometerAvailable() {
-        return accelerometer != null;
+        return accelSensor != null;
     }
 
     public boolean isMagnetometerAvailable() {
-        return magnetometer != null;
+        return magSensor != null;
     }
-
-    public void registerListener() {
-        mSensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_NORMAL);
-        mSensorManager.registerListener(this, magnetometer, SensorManager.SENSOR_DELAY_NORMAL);
-
-        // First get location from Network Provider
-        if (isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
-            locationManager.requestLocationUpdates(
-                    LocationManager.NETWORK_PROVIDER,
-                    MIN_TIME_BW_UPDATES,
-                    MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
-            if (locationManager != null) {
-                Location location = locationManager
-                        .getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-                if ((location != null)&&(isLocationEnoughAccurate(location))) {
-                    model.setCurrentLocation(location);
-                    ((MainActivity) context).currentLocationUpdated();
-                }
-            }
-        }
-        // if GPS Enabled get lat/long using GPS Services
-        if (isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-            locationManager.requestLocationUpdates(
-                    LocationManager.GPS_PROVIDER,
-                    MIN_TIME_BW_UPDATES,
-                    MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
-            if (locationManager != null) {
-                Location location = locationManager
-                        .getLastKnownLocation(LocationManager.GPS_PROVIDER);
-                if ((location != null)&&(isLocationEnoughAccurate(location))) {
-                    model.setCurrentLocation(location);
-                    ((MainActivity) context).currentLocationUpdated();
-                }
-            }
-
-        }
-    }
-
-    public void unregisterListener() {
-        mSensorManager.unregisterListener(this);
-        stopUsingGPS();
-    }
-
-    @Override
-    public void onSensorChanged(SensorEvent event) {
-        /*get gravity value arrays from Accelerometer*/
-        if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
-            float[] gravity = new float[3];
-            System.arraycopy(event.values, 0, gravity, 0, event.values.length);
-            model.getAccelerometrBuffer().add(gravity);
-        }
-        /*get gravity value arrays from Magnet*/
-        if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
-            float[] geoMagnetic = new float[3];
-            System.arraycopy(event.values, 0, geoMagnetic, 0, event.values.length);
-            model.getMagneticBuffer().add(geoMagnetic);
-        }
-        //TODO refactor notification of activity
-        ((MainActivity) context).phonePositionUpdated();
-    }
-
 
     public boolean isProviderEnabled(String provider) {
         return locationManager.isProviderEnabled(provider);
-    }
-
-    private void stopUsingGPS() {
-        if (locationManager != null) {
-            locationManager.removeUpdates(this);
-        }
-    }
-
-    @Override
-    public void onLocationChanged(Location location) {
-        if ((location != null)&&(isLocationEnoughAccurate(location))) {
-            model.setCurrentLocation(location);
-            //TODO refactor notification of activity
-            ((MainActivity) context).currentLocationUpdated();
-        }
-    }
-
-    @Override
-    public void onStatusChanged(String provider, int status, Bundle extras) {
-
-    }
-
-    @Override
-    public void onProviderEnabled(String provider) {
-
-    }
-
-    @Override
-    public void onProviderDisabled(String provider) {
-
-    }
-
-    @Override
-    public void onAccuracyChanged(Sensor sensor, int accuracy) {
-        // Do something here if sensor accuracy changes.
-        // You must implement this callback in your code.
     }
 
     public boolean isLocationEnoughAccurate(Location location){
         return location.getAccuracy()>0 && location.getAccuracy()<=MIN_ACCURACY;
     }
 
+	public void registerSensors() {
+		if(!sensorsRegistered) {
+            // First get location from Network Provider
+            if (isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+                locationManager.requestLocationUpdates(
+                        LocationManager.NETWORK_PROVIDER,
+                        MIN_TIME_BW_UPDATES,
+                        MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
+                Location location = locationManager
+                        .getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+                if ((location != null)&&(isLocationEnoughAccurate(location))) {
+                    model.updateLocation(location);
+
+                }
+            }
+            // if GPS Enabled get lat/long using GPS Services
+            if (isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+                locationManager.requestLocationUpdates(
+                        LocationManager.GPS_PROVIDER,
+                        MIN_TIME_BW_UPDATES,
+                        MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
+                Location location = locationManager
+                        .getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                if ((location != null)&&(isLocationEnoughAccurate(location))) {
+                    model.updateLocation(location);
+                }
+
+            }
+			sensorManager.registerListener(this, magSensor, SensorManager.SENSOR_DELAY_UI);
+			sensorManager.registerListener(this, accelSensor, SensorManager.SENSOR_DELAY_UI);
+			sensorsRegistered = true; // flag the sensors as registered
+
+
+		}
+
+        /*if(destinationIsOutdated()){
+            destinationName = null;
+            decisionPointLocationItems = null;
+            destinationLocation= null;
+            decisionPoint= null;
+            decisionTime= null;
+        }*/
+    }
+
+
+
+    public void onSensorChanged(SensorEvent event) {
+		// save the data from the sensor
+		switch(event.sensor.getType()){
+		case Sensor.TYPE_MAGNETIC_FIELD:
+            float[] mgValues = event.values.clone();
+			model.setMagValues(mgValues);
+
+			break;
+		case Sensor.TYPE_ACCELEROMETER:
+			model.setAccelValues(event.values.clone());
+			break;
+		}
+	}
+	
+	public void onAccuracyChanged(Sensor sensor, int accuracy) {
+	}
+
+    @Override
+    public void onLocationChanged(Location location) {
+        // store the new location
+        model.updateLocation(location);
+    }
+
+    @Override
+    public void onStatusChanged(String s, int i, Bundle bundle) {
+
+    }
+
+    @Override
+    public void onProviderEnabled(String s) {
+
+    }
+
+    @Override
+    public void onProviderDisabled(String s) {
+
+    }
+
+    public SensorListener(Context context, Model model) {
+		// initialize variables
+		locationManager = (LocationManager)context.getSystemService(Context.LOCATION_SERVICE);
+		sensorManager = (SensorManager)context.getSystemService(Context.SENSOR_SERVICE);
+		magSensor = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+		accelSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+		sensorsRegistered = false;
+        this.model = model;
+		model.setStatus(Model.STATUS_INACTIVE);
+	}
 }

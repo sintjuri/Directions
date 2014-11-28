@@ -10,7 +10,6 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
-import java.util.List;
 
 
 public class ListDialog extends DialogFragment {
@@ -36,12 +35,12 @@ public class ListDialog extends DialogFragment {
          */
         public void onItemSelected(LocationItem locationItem);
 
-        public List<LocationItem> getData();
+        public LocationItem[] getData();
 
     }
 
     /**
-     * A dummy implementation of the {@link Callbacks} interface that does
+     * A dummy implementation of the {@link com.onettm.directions.ListDialog.Callbacks} interface that does
      * nothing. Used only when this fragment is not attached to an activity.
      */
     private static Callbacks sDummyCallbacks = new Callbacks() {
@@ -50,7 +49,7 @@ public class ListDialog extends DialogFragment {
         }
 
         @Override
-        public List<LocationItem> getData() {
+        public LocationItem[] getData() {
             return null;
         }
 
