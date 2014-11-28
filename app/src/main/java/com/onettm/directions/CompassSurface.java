@@ -206,24 +206,6 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
 
         }
 
-
-        private void checkNewItems(Data data) {
-            synchronized (mSurfaceHolder) {
-                if (!questionMarkRendered && data.getLocation() != null && data.getDecisionPoint() != null && data.getLocation().distanceTo(data.getDecisionPoint()) > 1000) {
-                    for (LocationItem item : ((CompassActivity) getContext()).getData()) {
-
-                        if (!Arrays.asList(data.getDecisionPointLocationItems()).contains(item)) {
-                            Button button = (Button) ((CompassActivity) getContext()).findViewById(R.id.notificationButton);
-                            button.setText(button.getText() + " ?");
-                            questionMarkRendered = true;
-                            break;
-                        }
-                    }
-                }
-            }
-
-        }
-
         void initDrawing() {
 //*            synchronized (mSurfaceHolder) {
                 cardImage = BitmapFactory.decodeResource(getResources(), R.drawable.card);
@@ -334,9 +316,6 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
                     // update the animation
                     update(data);
                     triggerDraw(data);
-                    //TODO
-                    // checkOpenDialog();
-                    checkNewItems(data);
 
                     // work out how long to sleep for
                     long finishTime = System.currentTimeMillis();
@@ -392,7 +371,7 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
     private float compassCurrentBearing;
     private float compassSpeed;
 
-    private boolean questionMarkRendered;
+
 
     private CompassThread animationThread;
 

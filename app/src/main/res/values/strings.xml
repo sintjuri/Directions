@@ -14,5 +14,6 @@
     <string name="load">Load the list</string>
     <string name="search_button">Search</string>
     <string name="please_select">Please select</string>
+    <string name="arriving">You are arrived</string>
 
 </resources>

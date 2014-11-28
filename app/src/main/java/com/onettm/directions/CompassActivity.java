@@ -12,6 +12,7 @@ import android.content.Intent;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.provider.Settings;
 import android.support.v4.app.FragmentActivity;
 import android.view.View;
@@ -28,10 +29,14 @@ import java.util.Timer;
 public class CompassActivity extends FragmentActivity implements ListDialog.Callbacks{
 
     public static final int REPRATER_FIRST_TIME_OPEN_DIALOG = 1000;
+    private static final long REPRATER_COMPASS_TIMER = 10;
     private SensorListener compass;
     private Model model;
     private CompassSurface surface;
     private LinearLayout surfaceContainer;
+    private boolean questionMarkRendered;
+    private Timer compassTimer;
+    private Handler handler;
 
     //private CompassSurface.CompassThread compassThread;
 
@@ -43,6 +48,7 @@ public class CompassActivity extends FragmentActivity implements ListDialog.Call
         compass.unregisterSensors();
         // stop the animation
         surface.stopAnimation();
+        compassTimer.cancel();
         // call the superclass
         super.onPause();
     }
@@ -76,6 +82,9 @@ public class CompassActivity extends FragmentActivity implements ListDialog.Call
                 .isProviderEnabled(LocationManager.GPS_PROVIDER)) {
             showSettingsAlert();
         }
+
+        compassTimer = new Timer();
+        compassTimer.schedule(new CompassTimerTask(this, model), 0, REPRATER_COMPASS_TIMER);
     }
 
     /**
@@ -135,7 +144,9 @@ public class CompassActivity extends FragmentActivity implements ListDialog.Call
         });
 
         Timer firstTimeOnenDialogTimer = new Timer();
-        firstTimeOnenDialogTimer.schedule(new CheckFirtTimeToOpenDialogTask(this, model), REPRATER_FIRST_TIME_OPEN_DIALOG);
+        firstTimeOnenDialogTimer.schedule(new CheckFirtTimeToOpenDialogTask(this, model), 0, REPRATER_FIRST_TIME_OPEN_DIALOG);
+
+        handler=new Handler();
 
     }
 
@@ -186,4 +197,15 @@ public class CompassActivity extends FragmentActivity implements ListDialog.Call
         }
     }
 
+    public boolean isQuestionMarkRendered() {
+        return questionMarkRendered;
+    }
+
+    public void setQuestionMarkRendered(boolean questionMarkRendered) {
+        this.questionMarkRendered = questionMarkRendered;
+    }
+
+    public Handler getHandler(){
+        return handler;
+    }
 }

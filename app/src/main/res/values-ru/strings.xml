@@ -13,5 +13,6 @@
     <string name="load">Загрузить новый список</string>
     <string name="search_button">Поиск</string>
     <string name="please_select">Пожалуйста выберите</string>
+    <string name="arriving">Вы прибыли в точку назначения</string>
 
 </resources>
