@@ -1,15 +1,16 @@
 package com.onettm.directions;
 
 import android.content.Context;
+import android.support.v4.app.FragmentActivity;
 
 import java.util.TimerTask;
 
-public class CheckFirtTimeToOpenDialogTask extends TimerTask {
+public class CheckFirstTimeToOpenDialogTask extends TimerTask {
 
-    private final Context context;
+    private final CompassActivity.PlaceholderFragment context;
     private final Model model;
 
-    public CheckFirtTimeToOpenDialogTask(Context context, Model model) {
+    public CheckFirstTimeToOpenDialogTask(CompassActivity.PlaceholderFragment context, Model model) {
         super();
         this.context = context;
         this.model = model;
@@ -19,10 +20,10 @@ public class CheckFirtTimeToOpenDialogTask extends TimerTask {
     public void run() {
         Data data = model.getData();
         if ((data.getLocation() != null) && (data.getDestinationDistance() == 0)) {
-            ((CompassActivity) context).getHandler().post(new Runnable() {
+            context.getHandler().post(new Runnable() {
                 @Override
                 public void run() {
-                    ((CompassActivity) context).openListLocations();
+                    context.openListLocations();
                 }
             });
             cancel();

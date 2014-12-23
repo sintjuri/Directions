@@ -1,8 +1,8 @@
 package com.onettm.directions;
 
 import android.app.Activity;
-import android.app.DialogFragment;
 import android.os.Bundle;
+import android.support.v4.app.DialogFragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -35,7 +35,7 @@ public class ListDialog extends DialogFragment {
          */
         public void onItemSelected(LocationItem locationItem);
 
-        public LocationItem[] getData();
+        public LocationItem[] getDestinations();
 
     }
 
@@ -49,7 +49,7 @@ public class ListDialog extends DialogFragment {
         }
 
         @Override
-        public LocationItem[] getData() {
+        public LocationItem[] getDestinations() {
             return null;
         }
 
@@ -71,7 +71,7 @@ public class ListDialog extends DialogFragment {
                 getActivity(),
                 android.R.layout.simple_list_item_activated_1,
                 android.R.id.text1,
-                mCallbacks.getData()));
+                mCallbacks.getDestinations()));
 
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override

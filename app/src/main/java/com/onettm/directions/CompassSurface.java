@@ -15,15 +15,13 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.util.Log;
 import android.view.SurfaceView;
-import android.widget.Button;
 import android.view.SurfaceHolder;
-
-import java.util.Arrays;
 
 public class CompassSurface extends SurfaceView implements SurfaceHolder.Callback {
 
 
     private final Model model;
+    private final CompassActivity.PlaceholderFragment context;
 
     class CompassThread extends Thread {
 
@@ -37,7 +35,8 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
         private static final float INNER_COMPASS_CARD_RATIO = 7f / 11f;
         private static final float COMPASS_CENTER_X = 50f;
         private static final float COMPASS_CENTER_Y = 50f;
-        private static final float CARD_DIAMETER = 90f;
+        private static final float CARD_DIAMETER = 100f;
+        private static final float POINTER_DIAMETER = CARD_DIAMETER + CARD_DIAMETER*(1-INNER_COMPASS_CARD_RATIO)/2;
 
         private static final float BEARING_X = 50f;
         private static final float BEARING_Y = 8f;
@@ -145,7 +144,7 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
 //*            }
         }
 
-        public void doDraw(Canvas canvas, Data data) {
+        public void doDraw(Canvas canvas,final Data data) {
 
 
             // update the scales
@@ -155,7 +154,27 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
             canvas.drawColor(creamPaint.getColor()); // blank the screen
             //getBackgroundGradientDrawable().draw(canvas);
 
-            blackPaint.setTextSize(25f);
+
+            context.getHandler().post(new Runnable() {
+                @Override
+                public void run() {
+                    String textToOutput;
+
+                    if (data.getLocation() != null) {
+                        if (data.getDestinationDistance() > 0) {
+                            textToOutput = getContext().getString(R.string.distance, data.getDestinationName(), data.getDestinationDistance());
+                        } else {
+                            textToOutput = getContext().getString(R.string.please_select);
+                        }
+                    } else {
+                        textToOutput = getContext().getString(R.string.defining);
+                    }
+                    context.getTextOutput().setText(textToOutput);
+                }
+            });
+
+
+            /*blackPaint.setTextSize(25f);
             String textToOutput;
 
             if (data.getLocation() != null) {
@@ -168,9 +187,9 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
                 textToOutput = getContext().getString(R.string.defining);
             }
             canvas.drawText(textToOutput, (BEARING_X * widthScale) - getTextCenterOffset(textToOutput, blackPaint), BEARING_Y * heightScale, blackPaint);
-
-            // draw the inside of the directions card
-            int cardDiameter = (int) Math.floor(CARD_DIAMETER * widthScale);
+*/
+                // draw the inside of the directions card
+                int cardDiameter = (int) Math.floor(CARD_DIAMETER * widthScale);
 
             Rect centerRect = new Rect((int) Math.floor(COMPASS_CENTER_X * widthScale - ((cardDiameter * INNER_COMPASS_CARD_RATIO) / 2)),
                     (int) Math.floor(COMPASS_CENTER_Y * heightScale - ((cardDiameter * INNER_COMPASS_CARD_RATIO) / 2)),
@@ -190,12 +209,24 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
             canvas.drawBitmap(cardImage, null, cardRect, imagePaint);
             //canvas.restore();
 
+            int pointerDiameter = (int) Math.floor(POINTER_DIAMETER * widthScale);
+
+            // draw the pointer
+            canvas.rotate(data.getDestinationBearing(), COMPASS_CENTER_X * widthScale, COMPASS_CENTER_Y * heightScale);
+            int pointerX = (int) Math.floor(COMPASS_CENTER_X * widthScale - (pointerDiameter / 2));
+            int pointerY = (int) Math.floor(COMPASS_CENTER_Y * heightScale - (pointerDiameter / 2));
+            Rect pointerRect = new Rect(pointerX, pointerY, pointerX + pointerDiameter, pointerY + pointerDiameter);
+            canvas.drawBitmap(pointerImage, null, pointerRect, imagePaint);
+            //canvas.restore();
+
             // draw the locked bearing
+/*
             canvas.rotate(data.getDestinationBearing(), COMPASS_CENTER_X * widthScale, COMPASS_CENTER_Y * heightScale);
             bluePaint.setStyle(Paint.Style.STROKE);
             bluePaint.setStrokeWidth(3f);
             canvas.drawLine(COMPASS_CENTER_X * widthScale, cardY, COMPASS_CENTER_X * widthScale, cardY + ((1 - INNER_COMPASS_CARD_RATIO) * cardDiameter / 2), bluePaint);
-            canvas.restore();
+*/
+            //canvas.restore();
 
             // draw the bezel
             darkGreyPaint.setStyle(Paint.Style.STROKE);
@@ -209,6 +240,7 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
         void initDrawing() {
 //*            synchronized (mSurfaceHolder) {
                 cardImage = BitmapFactory.decodeResource(getResources(), R.drawable.card);
+                pointerImage = BitmapFactory.decodeResource(getResources(), R.drawable.pointer);
                 interferenceImage = BitmapFactory.decodeResource(getResources(), R.drawable.interference);
 
                 imagePaint = new Paint();
@@ -349,6 +381,7 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
 
     // images
     private Bitmap cardImage;
+    private Bitmap pointerImage;
     private Bitmap interferenceImage;
 
 
@@ -392,8 +425,9 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
     }
 
 
-    public CompassSurface(Context context, Model model) {
-        super(context);
+    public CompassSurface(CompassActivity.PlaceholderFragment context, Model model) {
+        super(context.getActivity());
+        this.context = context;
         this.model = model;
 
         // register our interest in hearing about changes to our surface

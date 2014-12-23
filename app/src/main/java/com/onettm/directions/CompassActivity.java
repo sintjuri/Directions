@@ -14,11 +14,19 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.provider.Settings;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentManager;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
+
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
 
 import java.util.Date;
 import java.util.LinkedList;
@@ -28,130 +36,17 @@ import java.util.Timer;
 
 public class CompassActivity extends FragmentActivity implements ListDialog.Callbacks{
 
-    public static final int REPRATER_FIRST_TIME_OPEN_DIALOG = 1000;
-    private static final long REPRATER_COMPASS_TIMER = 10;
-    private SensorListener compass;
     private Model model;
-    private CompassSurface surface;
-    private LinearLayout surfaceContainer;
-    private boolean questionMarkRendered;
-    private Timer compassTimer;
-    private Handler handler;
-
-    //private CompassSurface.CompassThread compassThread;
-
-
-    @Override
-    public void onPause() {
-
-        // unregister from the directions to prevent undue battery drain
-        compass.unregisterSensors();
-        // stop the animation
-        surface.stopAnimation();
-        compassTimer.cancel();
-        // call the superclass
-        super.onPause();
-    }
-
-    @Override
-    public void onResume() {
-        // class the superclass
-        super.onResume();
-
-        surface = new CompassSurface(this, model);
-        // add the directions
-        surfaceContainer.removeAllViews();
-        surfaceContainer.addView(surface);
-
-        // register to receive events from the directions
-        compass.registerSensors();
-
-        if (!compass.isAccelerometerAvailable()) {
-            new AlertDialog.Builder(this)
-                    .setMessage(R.string.accelerometer_not_available)
-                    .show();
-        }
-
-        if (!compass.isMagnetometerAvailable()) {
-            new AlertDialog.Builder(this)
-                    .setMessage(R.string.magnetometer_not_available)
-                    .show();
-        }
-
-        if (!compass
-                .isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-            showSettingsAlert();
-        }
-
-        compassTimer = new Timer();
-        compassTimer.schedule(new CompassTimerTask(this, model), 0, REPRATER_COMPASS_TIMER);
-    }
-
-    /**
-     * Function to show settings alert dialog
-     */
-    public void showSettingsAlert() {
-        AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
-
-        // Setting Dialog Title
-        alertDialog.setTitle(R.string.gps_settings);
-
-        // Setting Dialog Message
-        alertDialog.setMessage(R.string.enable_gps);
-
-        // Setting Icon to Dialog
-        //alertDialog.setIcon(R.drawable.delete);
-
-        // On pressing Settings button
-        alertDialog.setPositiveButton(R.string.settings, new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int which) {
-                Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-                startActivity(intent);
-            }
-        });
-
-        // on pressing cancel button
-        alertDialog.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.cancel();
-            }
-        });
-
-        // Showing Alert Message
-        alertDialog.show();
-    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        // create the gui
-        setContentView(R.layout.main);
-
         model = new Model();
-        // initialize variables
-        compass = new SensorListener(this, model);
-
-        //compassThread = surface.getThread();
-        surfaceContainer = (LinearLayout) findViewById(R.id.compassSurfaceContainer);
-
-        Button notificationButton = (Button) findViewById(R.id.notificationButton);
-        notificationButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                openListLocations();
-            }
-        });
-
-        Timer firstTimeOnenDialogTimer = new Timer();
-        firstTimeOnenDialogTimer.schedule(new CheckFirtTimeToOpenDialogTask(this, model), 0, REPRATER_FIRST_TIME_OPEN_DIALOG);
-
-        handler=new Handler();
-
+        setContentView(R.layout.main);
     }
 
     @Override
-    public LocationItem[] getData() {
+    public LocationItem[] getDestinations() {
         //TODO change to real implementation
         Location currentLocation = model.getData().getLocation();
 
@@ -179,7 +74,7 @@ public class CompassActivity extends FragmentActivity implements ListDialog.Call
     public void onItemSelected(LocationItem locationItem) {
 
         model.setDecisionPoint(locationItem.getCurrentLocation());
-        model.setDecisionPointLocationItems(getData());
+        model.setDecisionPointLocationItems(getDestinations());
         model.setDecisionTime(new Date());
         model.setDestinationLocation(locationItem.getLocation());
         model.setDestinationName(locationItem.getName());
@@ -187,25 +82,228 @@ public class CompassActivity extends FragmentActivity implements ListDialog.Call
 
     }
 
-    public void openListLocations() {
-        if (model.getData().getLocation() != null) {
-            android.app.FragmentManager fm = this.getFragmentManager();
-            ListDialog listDialog = new ListDialog();
-            listDialog.show(fm, "list_dialog");
-        } else {
-            Toast.makeText(this, this.getString(R.string.defining), Toast.LENGTH_SHORT).show();
+    public Model getModel() {
+        return model;
+    }
+
+    public static class PlaceholderFragment extends Fragment  {
+
+        private static final long REPEATER_COMPASS_TIMER = 10;
+        public static final int REPEATER_FIRST_TIME_OPEN_DIALOG = 1000;
+        private Model model;
+
+        private CompassSurface surface;
+        private LinearLayout surfaceContainer;
+        private Button notificationButton;
+        private TextView textOutput;
+        private Timer compassTimer;
+
+        private SensorListener compass;
+        private boolean questionMarkRendered;
+        private Handler handler;
+
+        public PlaceholderFragment() {
         }
+
+
+        /**
+         * Function to show settings alert dialog
+         */
+        public void showSettingsAlert() {
+            AlertDialog.Builder alertDialog = new AlertDialog.Builder(getActivity());
+
+            // Setting Dialog Title
+            alertDialog.setTitle(R.string.gps_settings);
+
+            // Setting Dialog Message
+            alertDialog.setMessage(R.string.enable_gps);
+
+            // Setting Icon to Dialog
+            //alertDialog.setIcon(R.drawable.delete);
+
+            // On pressing Settings button
+            alertDialog.setPositiveButton(R.string.settings, new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int which) {
+                    Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                    startActivity(intent);
+                }
+            });
+
+            // on pressing cancel button
+            alertDialog.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.cancel();
+                }
+            });
+
+            // Showing Alert Message
+            alertDialog.show();
+        }
+
+        @Override
+        public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                                 Bundle savedInstanceState) {
+            View rootView = inflater.inflate(R.layout.fragment_my, container, false);
+            this.model = ((CompassActivity) getActivity()).getModel();
+
+            surfaceContainer = (LinearLayout) rootView.findViewById(R.id.compassSurfaceContainer);
+
+            notificationButton = (Button) rootView.findViewById(R.id.notificationButton);
+            textOutput = (TextView) rootView.findViewById(R.id.textOutput);
+            notificationButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    openListLocations();
+                }
+            });
+
+            compass = new SensorListener(getActivity(), model);
+            Timer firstTimeOnenDialogTimer = new Timer();
+            firstTimeOnenDialogTimer.schedule(new CheckFirstTimeToOpenDialogTask(this, model), 0, REPEATER_FIRST_TIME_OPEN_DIALOG);
+
+            handler = new Handler();
+
+            return rootView;
+        }
+
+        @Override
+        public void onPause() {
+            // unregister from the directions to prevent undue battery drain
+            compass.unregisterSensors();
+            // stop the animation
+            surface.stopAnimation();
+            compassTimer.cancel();
+            // call the superclass
+            super.onPause();
+        }
+
+        @Override
+        public void onResume() {
+            super.onResume();
+
+            // register to receive events from the directions
+            compass.registerSensors();
+
+            if (!compass.isAccelerometerAvailable()) {
+                new AlertDialog.Builder(getActivity())
+                        .setMessage(R.string.accelerometer_not_available)
+                        .show();
+            }
+
+            if (!compass.isMagnetometerAvailable()) {
+                new AlertDialog.Builder(getActivity())
+                        .setMessage(R.string.magnetometer_not_available)
+                        .show();
+            }
+
+            if (!compass
+                    .isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+                showSettingsAlert();
+            }
+            surface = new CompassSurface(this, model);
+            // add the directions
+            surfaceContainer.removeAllViews();
+            surfaceContainer.addView(surface);
+
+            compassTimer = new Timer();
+            compassTimer.schedule(new CompassTimerTask((CompassActivity)getActivity(), this, model), 0, REPEATER_COMPASS_TIMER);
+         }
+
+        public void openListLocations() {
+            if (model.getData().getLocation() != null) {
+                FragmentManager fm = this.getFragmentManager();
+                ListDialog listDialog = new ListDialog();
+                listDialog.show(fm, "list_dialog");
+            } else {
+                Toast.makeText(getActivity(), this.getString(R.string.defining), Toast.LENGTH_SHORT).show();
+            }
+        }
+
+        public Button getNotificationButton() {
+            return notificationButton;
+        }
+
+        public TextView getTextOutput(){
+            return textOutput;
+        }
+
+        public Handler getHandler(){
+            return handler;
+        }
+
+        public boolean isQuestionMarkRendered() {
+            return questionMarkRendered;
+        }
+
+        public void setQuestionMarkRendered(boolean questionMarkRendered) {
+            this.questionMarkRendered = questionMarkRendered;
+        }
+
     }
 
-    public boolean isQuestionMarkRendered() {
-        return questionMarkRendered;
+    /**
+     * This class makes the ad request and loads the ad.
+     */
+    public static class AdFragment extends Fragment {
+
+        private AdView mAdView;
+
+        public AdFragment() {
+        }
+
+        @Override
+        public void onActivityCreated(Bundle bundle) {
+            super.onActivityCreated(bundle);
+
+            // Gets the ad view defined in layout/ad_fragment.xml with ad unit ID set in
+            // values/strings.xml.
+            mAdView = (AdView) getView().findViewById(R.id.adView);
+
+            // Create an ad request. Check logcat output for the hashed device ID to
+            // get test ads on a physical device. e.g.
+            // "Use AdRequest.Builder.addTestDevice("ABCDEF012345") to get test ads on this device."
+            AdRequest adRequest = new AdRequest.Builder()
+//                    .addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
+                    .addTestDevice("74760DA0E4A7D8383E8EC5268A2486CF")
+                    .build();
+
+            // Start loading the ad in the background.
+            mAdView.loadAd(adRequest);
+        }
+
+        @Override
+        public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                                 Bundle savedInstanceState) {
+            return inflater.inflate(R.layout.fragment_ad, container, false);
+        }
+
+        /** Called when leaving the activity */
+        @Override
+        public void onPause() {
+            if (mAdView != null) {
+                mAdView.pause();
+            }
+            super.onPause();
+        }
+
+        /** Called when returning to the activity */
+        @Override
+        public void onResume() {
+            super.onResume();
+            if (mAdView != null) {
+                mAdView.resume();
+            }
+        }
+
+        /** Called before the activity is destroyed */
+        @Override
+        public void onDestroy() {
+            if (mAdView != null) {
+                mAdView.destroy();
+            }
+            super.onDestroy();
+        }
+
     }
 
-    public void setQuestionMarkRendered(boolean questionMarkRendered) {
-        this.questionMarkRendered = questionMarkRendered;
-    }
-
-    public Handler getHandler(){
-        return handler;
-    }
 }

@@ -1,25 +1,21 @@
-<?xml version="1.0" encoding="utf-8"?><!--
-  NiceCompass
-  Released under the BSD License. See README or LICENSE.
-  Copyright (c) 2011, Digital Lizard (Oscar Key, Thomas Boby)
-  All rights reserved.
--->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    android:keepScreenOn="true"
-    android:orientation="vertical"
-    android:background="#DEDEDE">
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity"
+    tools:ignore="MergeRootFrame" >
 
-    <Button
-        android:id="@+id/notificationButton"
-        android:layout_width="fill_parent"
+    <fragment android:name="com.onettm.directions.CompassActivity$PlaceholderFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/adFragment" />
+
+    <fragment
+        android:id="@+id/adFragment"
+        android:name="com.onettm.directions.CompassActivity$AdFragment"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/load" />
+        android:layout_alignParentBottom="true" />
 
-    <LinearLayout
-        android:id="@+id/compassSurfaceContainer"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:orientation="horizontal"/>
-</LinearLayout>
+</RelativeLayout>
