@@ -51,6 +51,17 @@ public class CompassActivity extends FragmentActivity implements ListDialog.Call
         Location currentLocation = model.getData().getLocation();
 
         List<LocationItem> result = new LinkedList<LocationItem>();
+
+        Location pv = new Location("");
+        pv.setLatitude(51.672318);
+        pv.setLongitude(39.154473);
+        result.add(new LocationItem(pv, "Pivzavod", currentLocation));
+
+        Location gum = new Location("");
+        gum.setLatitude(51.669349);
+        gum.setLongitude(39.151828);
+        result.add(new LocationItem(gum, "6 gymnasium", currentLocation));
+
         for (int i = 0; i < 100; i++) {
             Location cicusLocation = new Location("");
             double circusLatitude = 51.656608;

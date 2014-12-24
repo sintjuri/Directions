@@ -36,7 +36,7 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
         private static final float COMPASS_CENTER_X = 50f;
         private static final float COMPASS_CENTER_Y = 50f;
         private static final float CARD_DIAMETER = 100f;
-        private static final float POINTER_DIAMETER = CARD_DIAMETER + CARD_DIAMETER*(1-INNER_COMPASS_CARD_RATIO)/2;
+        private static final float POINTER_DIAMETER = CARD_DIAMETER + CARD_DIAMETER * (1 - INNER_COMPASS_CARD_RATIO) / 2;
 
         private static final float BEARING_X = 50f;
         private static final float BEARING_Y = 8f;
@@ -138,21 +138,25 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
 
         void update(Data data) {
 //*            synchronized (mSurfaceHolder) {
-                updateBearing(data);
-                updateCompass(data);
-                updateAccuracy(data);
+            updateBearing(data);
+            updateCompass(data);
+            updateAccuracy(data);
 //*            }
         }
 
-        public void doDraw(Canvas canvas,final Data data) {
-
+        public void doDraw(Canvas canvas, final Data data) {
 
             // update the scales
             float widthScale = getWidthScale();
             float heightScale = getHeightScale();
 
+
+            float canvasSize = Math.min(getCanvasWidth(), getCanvasHeight());
+            float canvasCenterX = getCanvasWidth() / 2;
+            float canvasCenterY = getCanvasHeight() / 2;
+
+
             canvas.drawColor(creamPaint.getColor()); // blank the screen
-            //getBackgroundGradientDrawable().draw(canvas);
 
 
             context.getHandler().post(new Runnable() {
@@ -169,9 +173,92 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
                     } else {
                         textToOutput = getContext().getString(R.string.defining);
                     }
+
                     context.getTextOutput().setText(textToOutput);
                 }
             });
+
+
+
+
+
+
+
+
+
+
+
+
+
+            /*int cardDiameter = (int) Math.floor(CARD_DIAMETER * widthScale);
+
+            // draw the directions card
+            canvas.rotate(compassCurrentBearing * -1, COMPASS_CENTER_X * widthScale, COMPASS_CENTER_Y * heightScale);
+            int cardX = (int) Math.floor(COMPASS_CENTER_X * widthScale - (cardDiameter / 2));
+            int cardY = (int) Math.floor(COMPASS_CENTER_Y * heightScale - (cardDiameter / 2));
+            Rect cardRect = new Rect(cardX, cardY, cardX + cardDiameter, cardY + cardDiameter);
+            canvas.drawBitmap(cardImage, null, cardRect, imagePaint);
+            //canvas.restore();
+
+            int pointerDiameter = (int) Math.floor(POINTER_DIAMETER * widthScale);
+
+            // draw the pointer
+            canvas.rotate(data.getDestinationBearing(), COMPASS_CENTER_X * widthScale, COMPASS_CENTER_Y * heightScale);
+            int pointerX = (int) Math.floor(COMPASS_CENTER_X * widthScale - (pointerDiameter / 2));
+            int pointerY = (int) Math.floor(COMPASS_CENTER_Y * heightScale - (pointerDiameter / 2));
+            Rect pointerRect = new Rect(pointerX, pointerY, pointerX + pointerDiameter, pointerY + pointerDiameter);
+            canvas.drawBitmap(pointerImage, null, pointerRect, imagePaint);*/
+
+
+
+            Rect cardRect = new Rect((int) Math.floor(canvasCenterX - canvasSize / 2), (int) Math.floor(canvasCenterY - canvasSize / 2), (int) Math.floor(canvasCenterX + canvasSize / 2), (int) Math.floor(canvasCenterY + canvasSize / 2));
+            canvas.rotate(compassCurrentBearing * -1, canvasCenterX, canvasCenterY);
+            canvas.drawBitmap(cardImage, null, cardRect, imagePaint);
+            canvas.rotate(data.getDestinationBearing(), canvasCenterX, canvasCenterY);
+            canvas.drawBitmap(pointerImage, null, cardRect, imagePaint);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            /*Rect cardRect = new Rect((int) Math.floor(canvasCenterX - canvasSize / 2), (int) Math.floor(canvasCenterY - canvasSize / 2), (int) Math.floor(canvasCenterX + canvasSize / 2), (int) Math.floor(canvasCenterY + canvasSize / 2));
+            canvas.drawBitmap(cardImage, null, cardRect, imagePaint);
+
+            canvas.save();*/
+            //canvas.rotate(compassCurrentBearing * -1, canvasCenterX, canvasCenterY);
+            //canvas.drawBitmap(cardImage, null, cardRect, imagePaint);
+
+
+            // draw the directions card
+            /*int cardDiameter = (int) Math.floor(CARD_DIAMETER * widthScale);
+
+            canvas.rotate(compassCurrentBearing * -1, COMPASS_CENTER_X * widthScale, COMPASS_CENTER_Y * heightScale);
+            int cardX = (int) Math.floor(COMPASS_CENTER_X * widthScale - (cardDiameter / 2));
+            int cardY = (int) Math.floor(COMPASS_CENTER_Y * heightScale - (cardDiameter / 2));
+            Rect cardRect2 = new Rect(cardX, cardY, cardX + cardDiameter, cardY + cardDiameter);
+            canvas.drawBitmap(pointerImage, null, cardRect2, imagePaint);*/
+
+
+
+            /*canvas.rotate(-data.getDestinationBearing(), canvasCenterX, canvasCenterY);
+            canvas.drawBitmap(pointerImage, null, cardRect, imagePaint);
+            canvas.restore();*/
+
+
+
+
 
 
             /*blackPaint.setTextSize(25f);
@@ -188,8 +275,8 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
             }
             canvas.drawText(textToOutput, (BEARING_X * widthScale) - getTextCenterOffset(textToOutput, blackPaint), BEARING_Y * heightScale, blackPaint);
 */
-                // draw the inside of the directions card
-                int cardDiameter = (int) Math.floor(CARD_DIAMETER * widthScale);
+            // draw the inside of the directions card
+           /*     int cardDiameter = (int) Math.floor(CARD_DIAMETER * widthScale);
 
             Rect centerRect = new Rect((int) Math.floor(COMPASS_CENTER_X * widthScale - ((cardDiameter * INNER_COMPASS_CARD_RATIO) / 2)),
                     (int) Math.floor(COMPASS_CENTER_Y * heightScale - ((cardDiameter * INNER_COMPASS_CARD_RATIO) / 2)),
@@ -209,23 +296,17 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
             canvas.drawBitmap(cardImage, null, cardRect, imagePaint);
             //canvas.restore();
 
-            int pointerDiameter = (int) Math.floor(POINTER_DIAMETER * widthScale);
+
 
             // draw the pointer
             canvas.rotate(data.getDestinationBearing(), COMPASS_CENTER_X * widthScale, COMPASS_CENTER_Y * heightScale);
-            int pointerX = (int) Math.floor(COMPASS_CENTER_X * widthScale - (pointerDiameter / 2));
-            int pointerY = (int) Math.floor(COMPASS_CENTER_Y * heightScale - (pointerDiameter / 2));
-            Rect pointerRect = new Rect(pointerX, pointerY, pointerX + pointerDiameter, pointerY + pointerDiameter);
+            int pointerX = (int) Math.floor(COMPASS_CENTER_X * widthScale - (cardDiameter / 2));
+            int pointerY = (int) Math.floor(COMPASS_CENTER_Y * heightScale - (cardDiameter / 2));
+            Rect pointerRect = new Rect(pointerX, pointerY, pointerX + cardDiameter, pointerY + cardDiameter);
             canvas.drawBitmap(pointerImage, null, pointerRect, imagePaint);
             //canvas.restore();
 
             // draw the locked bearing
-/*
-            canvas.rotate(data.getDestinationBearing(), COMPASS_CENTER_X * widthScale, COMPASS_CENTER_Y * heightScale);
-            bluePaint.setStyle(Paint.Style.STROKE);
-            bluePaint.setStrokeWidth(3f);
-            canvas.drawLine(COMPASS_CENTER_X * widthScale, cardY, COMPASS_CENTER_X * widthScale, cardY + ((1 - INNER_COMPASS_CARD_RATIO) * cardDiameter / 2), bluePaint);
-*/
             //canvas.restore();
 
             // draw the bezel
@@ -233,30 +314,30 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
             darkGreyPaint.setStrokeWidth(6f);
             canvas.drawCircle(COMPASS_CENTER_X * widthScale, COMPASS_CENTER_Y * heightScale, cardDiameter / 2 + 2f, darkGreyPaint);
             //canvas.drawLine(COMPASS_CENTER_X * widthScale, cardY, COMPASS_CENTER_X * widthScale, cardY + ((1 - INNER_COMPASS_CARD_RATIO) * cardDiameter / 2), darkGreyPaint);
-            darkGreyPaint.setStyle(Paint.Style.FILL);
+            darkGreyPaint.setStyle(Paint.Style.FILL);*/
 
         }
 
         void initDrawing() {
 //*            synchronized (mSurfaceHolder) {
-                cardImage = BitmapFactory.decodeResource(getResources(), R.drawable.card);
-                pointerImage = BitmapFactory.decodeResource(getResources(), R.drawable.pointer);
-                interferenceImage = BitmapFactory.decodeResource(getResources(), R.drawable.interference);
+            cardImage = BitmapFactory.decodeResource(getResources(), R.drawable.card);
+            pointerImage = BitmapFactory.decodeResource(getResources(), R.drawable.pointer);
+            interferenceImage = BitmapFactory.decodeResource(getResources(), R.drawable.interference);
 
-                imagePaint = new Paint();
-                imagePaint.setDither(true);
-                blackPaint = new Paint();
-                blackPaint.setColor(Color.BLACK);
-                Paint greyPaint = new Paint();
-                greyPaint.setARGB(255, 179, 179, 179);
-                darkGreyPaint = new Paint();
-                darkGreyPaint.setARGB(255, 112, 112, 112);
-                creamPaint = new Paint();
-                creamPaint.setARGB(255, 222, 222, 222);
-                Paint redPaint = new Paint();
-                redPaint.setColor(Color.RED);
-                bluePaint = new Paint();
-                bluePaint.setARGB(255, 0, 94, 155);
+            imagePaint = new Paint();
+            imagePaint.setDither(true);
+            blackPaint = new Paint();
+            blackPaint.setColor(Color.BLACK);
+            Paint greyPaint = new Paint();
+            greyPaint.setARGB(255, 179, 179, 179);
+            darkGreyPaint = new Paint();
+            darkGreyPaint.setARGB(255, 112, 112, 112);
+            creamPaint = new Paint();
+            creamPaint.setARGB(255, 222, 222, 222);
+            Paint redPaint = new Paint();
+            redPaint.setColor(Color.RED);
+            bluePaint = new Paint();
+            bluePaint.setARGB(255, 0, 94, 155);
 
 //*            }
         }
@@ -289,9 +370,9 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
 
         void triggerDraw(Data data) {
 //*            synchronized (mSurfaceHolder) {
-                //Log.d("callback", "triggerDraw");
-                Canvas canvas = null;
-                try {
+            //Log.d("callback", "triggerDraw");
+            Canvas canvas = null;
+            try {
             /*SurfaceHolder.Callback callback = new SurfaceHolder.Callback() {
                 public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
                     Log.d("callback", "surfaceChanged");
@@ -307,22 +388,22 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
             };
 
             this.getHolder().addCallback(callback);*/
-                    //Log.d("callback", "beforeLock");
-                    canvas = mSurfaceHolder.lockCanvas();
-                    //Log.d("callback", "afterLock");
-                    if (canvas != null) {
-                        //Log.d("callback", "beforeDraw");
-                        this.doDraw(canvas, data);
-                        //Log.d("callback", "afterDraw");
-                    }
-
-                } finally {
-                    if (canvas != null) {
-                        //Log.d("callback", "beforeUnlock");
-                        mSurfaceHolder.unlockCanvasAndPost(canvas);
-                        //Log.d("callback", "afterUnlock");
-                    }
+                //Log.d("callback", "beforeLock");
+                canvas = mSurfaceHolder.lockCanvas();
+                //Log.d("callback", "afterLock");
+                if (canvas != null) {
+                    //Log.d("callback", "beforeDraw");
+                    this.doDraw(canvas, data);
+                    //Log.d("callback", "afterDraw");
                 }
+
+            } finally {
+                if (canvas != null) {
+                    //Log.d("callback", "beforeUnlock");
+                    mSurfaceHolder.unlockCanvasAndPost(canvas);
+                    //Log.d("callback", "afterUnlock");
+                }
+            }
 //*            }
         }
 
@@ -343,27 +424,27 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
             while (mRun) {
                 data = model.getData();
 //*                synchronized (mSurfaceHolder) {
-                    // record the start time
-                    long startTime = System.currentTimeMillis();
-                    // update the animation
-                    update(data);
-                    triggerDraw(data);
+                // record the start time
+                long startTime = System.currentTimeMillis();
+                // update the animation
+                update(data);
+                triggerDraw(data);
 
-                    // work out how long to sleep for
-                    long finishTime = System.currentTimeMillis();
-                    long requiredSleepTime = maxSleepTime - (finishTime - startTime);
-                    // check if the sleep time was too low
-                    if (requiredSleepTime < MINIMUM_SLEEP_TIME) {
-                        requiredSleepTime = MINIMUM_SLEEP_TIME;
-                    }
+                // work out how long to sleep for
+                long finishTime = System.currentTimeMillis();
+                long requiredSleepTime = maxSleepTime - (finishTime - startTime);
+                // check if the sleep time was too low
+                if (requiredSleepTime < MINIMUM_SLEEP_TIME) {
+                    requiredSleepTime = MINIMUM_SLEEP_TIME;
+                }
 
 
-                    // try to sleep for this time
-                    try {
-                        Thread.sleep(requiredSleepTime);
-                    } catch (InterruptedException e) {
-                        // do nothing
-                    }
+                // try to sleep for this time
+                try {
+                    Thread.sleep(requiredSleepTime);
+                } catch (InterruptedException e) {
+                    // do nothing
+                }
 //*                }
             }
         }
@@ -405,8 +486,15 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
     private float compassSpeed;
 
 
-
     private CompassThread animationThread;
+
+    float getCanvasWidth() {
+        return getWidth();
+    }
+
+    float getCanvasHeight() {
+        return getHeight();
+    }
 
     float getWidthScale() {
         // check if the scale needs to be initialized
@@ -442,7 +530,6 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
     }
 
 
-
     /*
      * Callback invoked when the Surface has been created and is ready to be
      * used.
@@ -463,7 +550,7 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
         stopAnimation();
     }
 
-    public void stopAnimation(){
+    public void stopAnimation() {
         // we have to tell thread to shut down & wait for it to finish, or else
         // it might touch the Surface after we return and explode
         boolean retry = true;
