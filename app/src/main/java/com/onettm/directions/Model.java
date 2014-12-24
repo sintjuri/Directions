@@ -3,8 +3,6 @@ package com.onettm.directions;
 import android.hardware.GeomagneticField;
 import android.location.Location;
 
-import java.util.Date;
-
 
 public class Model {
 
@@ -25,7 +23,6 @@ public class Model {
     private LocationItem[] decisionPointLocationItems;
     private Location destinationLocation;
     private Location decisionPoint;
-    private Date decisionTime;
 
     public synchronized Data getData(){
 
@@ -40,9 +37,6 @@ public class Model {
         }
         if(decisionPoint!=null) {
             result.setDecisionPoint(new Location(decisionPoint));
-        }
-        if(decisionTime!=null) {
-            result.setDecisionTime(new Date(decisionTime.getTime()));
         }
         if(decisionPointLocationItems!=null) {
             result.setDecisionPointLocationItems(decisionPointLocationItems.clone());
@@ -89,10 +83,6 @@ public class Model {
 
     public synchronized void setDestinationLocation(Location destinationLocation) {
         this.destinationLocation = destinationLocation;
-    }
-
-    public void setDecisionTime(Date decisionTime) {
-        this.decisionTime = decisionTime;
     }
 
     public void setDecisionPoint(Location decisionPoint) {

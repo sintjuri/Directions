@@ -6,7 +6,6 @@
  ******************************************************************************/
 package com.onettm.directions;
 
-import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -31,15 +30,6 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
         private static final int REQUIRED_BEARING_CHANGE = 5;
         private static final int REQUIRED_BEARING_REPEAT = 40;
 
-
-        private static final float INNER_COMPASS_CARD_RATIO = 7f / 11f;
-        private static final float COMPASS_CENTER_X = 50f;
-        private static final float COMPASS_CENTER_Y = 50f;
-        private static final float CARD_DIAMETER = 100f;
-        private static final float POINTER_DIAMETER = CARD_DIAMETER + CARD_DIAMETER * (1 - INNER_COMPASS_CARD_RATIO) / 2;
-
-        private static final float BEARING_X = 50f;
-        private static final float BEARING_Y = 8f;
 
         private static final float COMPASS_ACCEL_RATE = 0.9f;
         private static final float COMPASS_SPEED_MODIFIER = 0.26f;
@@ -145,12 +135,6 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
         }
 
         public void doDraw(Canvas canvas, final Data data) {
-
-            // update the scales
-            float widthScale = getWidthScale();
-            float heightScale = getHeightScale();
-
-
             float canvasSize = Math.min(getCanvasWidth(), getCanvasHeight());
             float canvasCenterX = getCanvasWidth() / 2;
             float canvasCenterY = getCanvasHeight() / 2;
@@ -178,143 +162,17 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
                 }
             });
 
-
-
-
-
-
-
-
-
-
-
-
-
-            /*int cardDiameter = (int) Math.floor(CARD_DIAMETER * widthScale);
-
-            // draw the directions card
-            canvas.rotate(compassCurrentBearing * -1, COMPASS_CENTER_X * widthScale, COMPASS_CENTER_Y * heightScale);
-            int cardX = (int) Math.floor(COMPASS_CENTER_X * widthScale - (cardDiameter / 2));
-            int cardY = (int) Math.floor(COMPASS_CENTER_Y * heightScale - (cardDiameter / 2));
-            Rect cardRect = new Rect(cardX, cardY, cardX + cardDiameter, cardY + cardDiameter);
-            canvas.drawBitmap(cardImage, null, cardRect, imagePaint);
-            //canvas.restore();
-
-            int pointerDiameter = (int) Math.floor(POINTER_DIAMETER * widthScale);
-
-            // draw the pointer
-            canvas.rotate(data.getDestinationBearing(), COMPASS_CENTER_X * widthScale, COMPASS_CENTER_Y * heightScale);
-            int pointerX = (int) Math.floor(COMPASS_CENTER_X * widthScale - (pointerDiameter / 2));
-            int pointerY = (int) Math.floor(COMPASS_CENTER_Y * heightScale - (pointerDiameter / 2));
-            Rect pointerRect = new Rect(pointerX, pointerY, pointerX + pointerDiameter, pointerY + pointerDiameter);
-            canvas.drawBitmap(pointerImage, null, pointerRect, imagePaint);*/
-
-
-
             Rect cardRect = new Rect((int) Math.floor(canvasCenterX - canvasSize / 2), (int) Math.floor(canvasCenterY - canvasSize / 2), (int) Math.floor(canvasCenterX + canvasSize / 2), (int) Math.floor(canvasCenterY + canvasSize / 2));
-            canvas.rotate(compassCurrentBearing * -1, canvasCenterX, canvasCenterY);
-            canvas.drawBitmap(cardImage, null, cardRect, imagePaint);
-            canvas.rotate(data.getDestinationBearing(), canvasCenterX, canvasCenterY);
-            canvas.drawBitmap(pointerImage, null, cardRect, imagePaint);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-            /*Rect cardRect = new Rect((int) Math.floor(canvasCenterX - canvasSize / 2), (int) Math.floor(canvasCenterY - canvasSize / 2), (int) Math.floor(canvasCenterX + canvasSize / 2), (int) Math.floor(canvasCenterY + canvasSize / 2));
-            canvas.drawBitmap(cardImage, null, cardRect, imagePaint);
-
-            canvas.save();*/
-            //canvas.rotate(compassCurrentBearing * -1, canvasCenterX, canvasCenterY);
-            //canvas.drawBitmap(cardImage, null, cardRect, imagePaint);
-
-
-            // draw the directions card
-            /*int cardDiameter = (int) Math.floor(CARD_DIAMETER * widthScale);
-
-            canvas.rotate(compassCurrentBearing * -1, COMPASS_CENTER_X * widthScale, COMPASS_CENTER_Y * heightScale);
-            int cardX = (int) Math.floor(COMPASS_CENTER_X * widthScale - (cardDiameter / 2));
-            int cardY = (int) Math.floor(COMPASS_CENTER_Y * heightScale - (cardDiameter / 2));
-            Rect cardRect2 = new Rect(cardX, cardY, cardX + cardDiameter, cardY + cardDiameter);
-            canvas.drawBitmap(pointerImage, null, cardRect2, imagePaint);*/
-
-
-
-            /*canvas.rotate(-data.getDestinationBearing(), canvasCenterX, canvasCenterY);
-            canvas.drawBitmap(pointerImage, null, cardRect, imagePaint);
-            canvas.restore();*/
-
-
-
-
-
-
-            /*blackPaint.setTextSize(25f);
-            String textToOutput;
-
-            if (data.getLocation() != null) {
-                if (data.getDestinationDistance() > 0) {
-                    textToOutput = getContext().getString(R.string.distance, data.getDestinationName(), data.getDestinationDistance());
-                } else {
-                    textToOutput = getContext().getString(R.string.please_select);
-                }
-            } else {
-                textToOutput = getContext().getString(R.string.defining);
-            }
-            canvas.drawText(textToOutput, (BEARING_X * widthScale) - getTextCenterOffset(textToOutput, blackPaint), BEARING_Y * heightScale, blackPaint);
-*/
-            // draw the inside of the directions card
-           /*     int cardDiameter = (int) Math.floor(CARD_DIAMETER * widthScale);
-
-            Rect centerRect = new Rect((int) Math.floor(COMPASS_CENTER_X * widthScale - ((cardDiameter * INNER_COMPASS_CARD_RATIO) / 2)),
-                    (int) Math.floor(COMPASS_CENTER_Y * heightScale - ((cardDiameter * INNER_COMPASS_CARD_RATIO) / 2)),
-                    (int) Math.floor(COMPASS_CENTER_X * widthScale + ((cardDiameter * INNER_COMPASS_CARD_RATIO) / 2)),
-                    (int) Math.floor(COMPASS_CENTER_Y * heightScale + ((cardDiameter * INNER_COMPASS_CARD_RATIO) / 2)));
-            // draw the right status
             if (displayedStatus == Model.STATUS_INTERFERENCE) {
-                canvas.drawBitmap(interferenceImage, null, centerRect, imagePaint);
+                canvas.drawBitmap(interferenceImage, null, cardRect, imagePaint);
+            }else {
+
+                canvas.rotate(compassCurrentBearing * -1, canvasCenterX, canvasCenterY);
+                canvas.drawBitmap(cardImage, null, cardRect, imagePaint);
+                canvas.rotate(data.getDestinationBearing(), canvasCenterX, canvasCenterY);
+                canvas.drawBitmap(pointerImage, null, cardRect, imagePaint);
             }
-
-
-            // draw the directions card
-            canvas.rotate(compassCurrentBearing * -1, COMPASS_CENTER_X * widthScale, COMPASS_CENTER_Y * heightScale);
-            int cardX = (int) Math.floor(COMPASS_CENTER_X * widthScale - (cardDiameter / 2));
-            int cardY = (int) Math.floor(COMPASS_CENTER_Y * heightScale - (cardDiameter / 2));
-            Rect cardRect = new Rect(cardX, cardY, cardX + cardDiameter, cardY + cardDiameter);
-            canvas.drawBitmap(cardImage, null, cardRect, imagePaint);
-            //canvas.restore();
-
-
-
-            // draw the pointer
-            canvas.rotate(data.getDestinationBearing(), COMPASS_CENTER_X * widthScale, COMPASS_CENTER_Y * heightScale);
-            int pointerX = (int) Math.floor(COMPASS_CENTER_X * widthScale - (cardDiameter / 2));
-            int pointerY = (int) Math.floor(COMPASS_CENTER_Y * heightScale - (cardDiameter / 2));
-            Rect pointerRect = new Rect(pointerX, pointerY, pointerX + cardDiameter, pointerY + cardDiameter);
-            canvas.drawBitmap(pointerImage, null, pointerRect, imagePaint);
-            //canvas.restore();
-
-            // draw the locked bearing
-            //canvas.restore();
-
-            // draw the bezel
-            darkGreyPaint.setStyle(Paint.Style.STROKE);
-            darkGreyPaint.setStrokeWidth(6f);
-            canvas.drawCircle(COMPASS_CENTER_X * widthScale, COMPASS_CENTER_Y * heightScale, cardDiameter / 2 + 2f, darkGreyPaint);
-            //canvas.drawLine(COMPASS_CENTER_X * widthScale, cardY, COMPASS_CENTER_X * widthScale, cardY + ((1 - INNER_COMPASS_CARD_RATIO) * cardDiameter / 2), darkGreyPaint);
-            darkGreyPaint.setStyle(Paint.Style.FILL);*/
 
         }
 
@@ -326,32 +184,20 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
 
             imagePaint = new Paint();
             imagePaint.setDither(true);
-            blackPaint = new Paint();
+            Paint blackPaint = new Paint();
             blackPaint.setColor(Color.BLACK);
             Paint greyPaint = new Paint();
             greyPaint.setARGB(255, 179, 179, 179);
-            darkGreyPaint = new Paint();
+            Paint darkGreyPaint = new Paint();
             darkGreyPaint.setARGB(255, 112, 112, 112);
             creamPaint = new Paint();
             creamPaint.setARGB(255, 222, 222, 222);
             Paint redPaint = new Paint();
             redPaint.setColor(Color.RED);
-            bluePaint = new Paint();
+            Paint bluePaint = new Paint();
             bluePaint.setARGB(255, 0, 94, 155);
 
 //*            }
-        }
-
-        float getTextCenterOffset(String text, Paint paint) {
-            synchronized (mSurfaceHolder) {
-                float[] widths = new float[text.length()];
-                paint.getTextWidths(text, widths);
-                float totalWidth = 0;
-                for (int i = 0; i < text.length(); i++) {
-                    totalWidth += widths[i];
-                }
-                return totalWidth / 2;
-            }
         }
 
         private void updateAccuracy(Data data) {
@@ -468,14 +314,8 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
 
     // paint
     private Paint imagePaint;
-    private Paint darkGreyPaint;
     private Paint creamPaint;
-    private Paint blackPaint;
-    private Paint bluePaint;
 
-
-    private float cachedWidthScale;
-    private float cachedHeightScale;
 
     private int displayedStatus;
 
@@ -495,23 +335,6 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
     float getCanvasHeight() {
         return getHeight();
     }
-
-    float getWidthScale() {
-        // check if the scale needs to be initialized
-        if (cachedWidthScale == 0f) {
-            cachedWidthScale = this.getWidth() / 100f;
-        }
-        return cachedWidthScale;
-    }
-
-    float getHeightScale() {
-        // check if the scale needs to be initialized
-        if (cachedHeightScale == 0f) {
-            cachedHeightScale = this.getHeight() / 100f;
-        }
-        return cachedHeightScale;
-    }
-
 
     public CompassSurface(CompassActivity.PlaceholderFragment context, Model model) {
         super(context.getActivity());

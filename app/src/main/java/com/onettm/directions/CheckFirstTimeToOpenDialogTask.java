@@ -1,8 +1,5 @@
 package com.onettm.directions;
 
-import android.content.Context;
-import android.support.v4.app.FragmentActivity;
-
 import java.util.TimerTask;
 
 public class CheckFirstTimeToOpenDialogTask extends TimerTask {

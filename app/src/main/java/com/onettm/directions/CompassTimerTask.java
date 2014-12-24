@@ -35,7 +35,7 @@ public class CompassTimerTask extends TimerTask {
                     fragment.getHandler().post(new Runnable() {
                         @Override
                         public void run() {
-                            Button button = (Button) fragment.getNotificationButton();
+                            Button button = fragment.getNotificationButton();
                             button.setText(button.getText() + " ?");
                             fragment.setQuestionMarkRendered(true);
                         }

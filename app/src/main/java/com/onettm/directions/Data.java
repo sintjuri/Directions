@@ -3,7 +3,6 @@ package com.onettm.directions;
 import android.hardware.SensorManager;
 import android.location.Location;
 
-import java.util.Date;
 
 
 public class Data {
@@ -15,7 +14,6 @@ public class Data {
     private String destinationName;
     private Location decisionPoint;
     private LocationItem[] decisionPointLocationItems;
-    private Date decisionTime;
     private float[] magValues;
     private float[] accelValues;
     private float declination;
@@ -63,14 +61,6 @@ public class Data {
     public void setDecisionPointLocationItems(LocationItem[] decisionPointLocationItems) {
         this.decisionPointLocationItems = decisionPointLocationItems;
     }
-
-    public void setDecisionTime(Date decisionTime) {
-        this.decisionTime = decisionTime;
-    }
-
-    /*public Date getDecisionTime() {
-        return decisionTime;
-    }*/
 
     public float getPositiveBearing() {
         // take the given bearing and convert it into 0 <= x < 360

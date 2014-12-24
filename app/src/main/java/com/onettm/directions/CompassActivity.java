@@ -86,7 +86,6 @@ public class CompassActivity extends FragmentActivity implements ListDialog.Call
 
         model.setDecisionPoint(locationItem.getCurrentLocation());
         model.setDecisionPointLocationItems(getDestinations());
-        model.setDecisionTime(new Date());
         model.setDestinationLocation(locationItem.getLocation());
         model.setDestinationName(locationItem.getName());
 
