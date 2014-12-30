@@ -11,6 +11,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.location.Location;
 import android.location.LocationManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.provider.Settings;
@@ -34,7 +35,7 @@ import java.util.List;
 import java.util.Timer;
 
 
-public class CompassActivity extends FragmentActivity implements ListDialog.Callbacks{
+public class CompassActivity extends FragmentActivity implements ListDialog.Callbacks {
 
     private Model model;
 
@@ -78,6 +79,11 @@ public class CompassActivity extends FragmentActivity implements ListDialog.Call
         LocationItem item = new LocationItem(mdm, "MDM", currentLocation);
         result.add(item);
         LocationItem[] res = new LocationItem[result.size()];
+        try {
+            Thread.sleep(15000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         return result.toArray(res);
     }
 
@@ -96,7 +102,7 @@ public class CompassActivity extends FragmentActivity implements ListDialog.Call
         return model;
     }
 
-    public static class PlaceholderFragment extends Fragment  {
+    public static class PlaceholderFragment extends Fragment {
 
         private static final long REPEATER_COMPASS_TIMER = 10;
         public static final int REPEATER_FIRST_TIME_OPEN_DIALOG = 1000;
@@ -216,14 +222,29 @@ public class CompassActivity extends FragmentActivity implements ListDialog.Call
             surfaceContainer.addView(surface);
 
             compassTimer = new Timer();
-            compassTimer.schedule(new CompassTimerTask((CompassActivity)getActivity(), this, model), 0, REPEATER_COMPASS_TIMER);
-         }
+            compassTimer.schedule(new CompassTimerTask((CompassActivity) getActivity(), this, model), 0, REPEATER_COMPASS_TIMER);
+        }
 
         public void openListLocations() {
             if (model.getData().getLocation() != null) {
-                FragmentManager fm = this.getFragmentManager();
-                ListDialog listDialog = new ListDialog();
-                listDialog.show(fm, "list_dialog");
+                AsyncTask at = new AsyncTask() {
+
+                    ListDialog listDialog;
+
+                    @Override
+                    protected Object doInBackground(Object[] objects) {
+                        return listDialog = new ListDialog();
+                    }
+
+                    @Override
+                    protected void onPostExecute(Object o) {
+                        super.onPostExecute(o);
+                        FragmentManager fm = getFragmentManager();
+
+                        listDialog.show(fm, "list_dialog");
+                    }
+                };
+                at.execute();
             } else {
                 Toast.makeText(getActivity(), this.getString(R.string.defining), Toast.LENGTH_SHORT).show();
             }
@@ -233,11 +254,11 @@ public class CompassActivity extends FragmentActivity implements ListDialog.Call
             return notificationButton;
         }
 
-        public TextView getTextOutput(){
+        public TextView getTextOutput() {
             return textOutput;
         }
 
-        public Handler getHandler(){
+        public Handler getHandler() {
             return handler;
         }
 
@@ -287,7 +308,9 @@ public class CompassActivity extends FragmentActivity implements ListDialog.Call
             return inflater.inflate(R.layout.fragment_ad, container, false);
         }
 
-        /** Called when leaving the activity */
+        /**
+         * Called when leaving the activity
+         */
         @Override
         public void onPause() {
             if (mAdView != null) {
@@ -296,7 +319,9 @@ public class CompassActivity extends FragmentActivity implements ListDialog.Call
             super.onPause();
         }
 
-        /** Called when returning to the activity */
+        /**
+         * Called when returning to the activity
+         */
         @Override
         public void onResume() {
             super.onResume();
@@ -305,7 +330,9 @@ public class CompassActivity extends FragmentActivity implements ListDialog.Call
             }
         }
 
-        /** Called before the activity is destroyed */
+        /**
+         * Called before the activity is destroyed
+         */
         @Override
         public void onDestroy() {
             if (mAdView != null) {
