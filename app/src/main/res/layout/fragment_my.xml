@@ -3,7 +3,7 @@
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:background="#DEDEDE"
-    android:keepScreenOn="true"
+    android:keepScreenOn="false"
     android:orientation="vertical">
 
     <Button

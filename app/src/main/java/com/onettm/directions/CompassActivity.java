@@ -29,7 +29,6 @@ import android.widget.Toast;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 
-import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Timer;
