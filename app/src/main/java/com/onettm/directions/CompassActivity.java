@@ -9,6 +9,8 @@ package com.onettm.directions;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteStatement;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.AsyncTask;
@@ -29,6 +31,7 @@ import android.widget.Toast;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 
+import java.sql.Statement;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Timer;
@@ -50,39 +53,28 @@ public class CompassActivity extends FragmentActivity implements ListDialog.Call
         //TODO change to real implementation
         Location currentLocation = model.getData().getLocation();
 
+        long cur_lat = (long)(currentLocation.getLatitude()*10000000);
+        long cur_lon = (long) (currentLocation.getLongitude()*10000000);
+        Cursor c = DirectionsApplication.getInstance().getDb().rawQuery(String.format("select tag.v, node.lat, node.lon from node \n" +
+                "join tag_node on  node.id=tag_node.node\n" +
+                "join tag on tag.id=tag_node.tag\n" +
+                "where tag.k='name'\n" +
+                "and node.lat > %d - 400000 and node.lat < %d + 400000\n" +
+                "and node.lon > %d - 700000 and node.lon < %d + 700000", cur_lat, cur_lat, cur_lon, cur_lon), null);
+
+        c.moveToFirst();
         List<LocationItem> result = new LinkedList<LocationItem>();
-
-        Location pv = new Location("");
-        pv.setLatitude(51.672318);
-        pv.setLongitude(39.154473);
-        result.add(new LocationItem(pv, "Pivzavod", currentLocation));
-
-        Location gum = new Location("");
-        gum.setLatitude(51.669349);
-        gum.setLongitude(39.151828);
-        result.add(new LocationItem(gum, "6 gymnasium", currentLocation));
-
-        for (int i = 0; i < 100; i++) {
-            Location cicusLocation = new Location("");
-            double circusLatitude = 51.656608;
-            cicusLocation.setLatitude(circusLatitude);
-            double circusLongitude = 39.185975;
-            cicusLocation.setLongitude(circusLongitude);
-            LocationItem item = new LocationItem(cicusLocation, "Circus", currentLocation);
-            result.add(item);
+        while(c.moveToNext()){
+            String name = c.getString(0);
+            double lat = c.getDouble(1)/  10000000;
+            double lon = c.getDouble(2)/10000000;
+            Location pv = new Location("");
+            pv.setLatitude(lat);
+            pv.setLongitude(lon);
+            result.add(new LocationItem(pv, name, currentLocation));
         }
 
-        Location mdm = new Location("");
-        mdm.setLatitude(51.661678);
-        mdm.setLongitude(39.203636);
-        LocationItem item = new LocationItem(mdm, "MDM", currentLocation);
-        result.add(item);
         LocationItem[] res = new LocationItem[result.size()];
-        try {
-            Thread.sleep(15000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
         return result.toArray(res);
     }
 

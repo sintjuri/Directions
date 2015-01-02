@@ -17,7 +17,7 @@ public class DirDataHelper {
 
     public DirDataHelper() {
         SQLiteOpenHelper o = new DirOpenHelper(DirectionsApplication.getInstance(), "osm.db");
-        this.db = o.getWritableDatabase();
+        this.db = o.getReadableDatabase();
 
     }
 
