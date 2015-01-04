@@ -32,6 +32,8 @@ import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 
 import java.sql.Statement;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Timer;
@@ -73,10 +75,36 @@ public class CompassActivity extends FragmentActivity implements ListDialog.Call
             pv.setLongitude(lon);
             result.add(new LocationItem(pv, name, currentLocation));
         }
-
         LocationItem[] res = new LocationItem[result.size()];
-        return result.toArray(res);
+        result.toArray(res);
+
+        DistanceComparator<LocationItem> dc = new DistanceComparator<LocationItem>(currentLocation);
+        Arrays.sort(res, dc);
+        return res;
     }
+
+    static class DistanceComparator<L extends LocationItem>  implements java.util.Comparator<L>{
+
+        private final Location currentLoc;
+
+        DistanceComparator(Location currentLoc) {
+            this.currentLoc = currentLoc;
+        }
+
+        @Override
+        public int compare(L l, L l2) {
+            if(l==l2) return 0;
+            if (l == null) return -1;
+            if (l2 == null) return 1;
+
+            if(l.getLocation()== null) return -1;
+            if(l2.getLocation() == null) return 1;
+
+            float d = currentLoc.distanceTo(l.getLocation());
+            float d2 = currentLoc.distanceTo(l2.getLocation());
+            return Float.compare(d, d2);
+        }
+    };
 
     @Override
     public void onItemSelected(LocationItem locationItem) {
