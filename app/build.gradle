@@ -6,7 +6,7 @@ android {
 
     defaultConfig {
         applicationId "com.onettm.directions"
-        minSdkVersion 11
+        minSdkVersion 10
         targetSdkVersion 17
         versionCode 1
         versionName "1.0"

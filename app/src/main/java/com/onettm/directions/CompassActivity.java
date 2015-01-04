@@ -20,6 +20,7 @@ import android.provider.Settings;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -78,6 +79,7 @@ public class CompassActivity extends FragmentActivity implements ListDialog.Call
             Location pv = new Location("");
             pv.setLatitude(lat);
             pv.setLongitude(lon);
+            Log.v("location item", lat + ", " + lon+ " - " + name);
             result.add(new LocationItem(pv, name, currentLocation));
         }
         c.close();
@@ -142,10 +144,10 @@ public class CompassActivity extends FragmentActivity implements ListDialog.Call
     };
 
     @Override
-    public void onItemSelected(LocationItem locationItem) {
+    public void onItemSelected(LocationItem locationItem, LocationItem[] destinations) {
 
         model.setDecisionPoint(locationItem.getCurrentLocation());
-        model.setDecisionPointLocationItems(getDestinations());
+        model.setDecisionPointLocationItems(destinations);
         model.setDestinationLocation(locationItem.getLocation());
         model.setDestinationName(locationItem.getName());
 

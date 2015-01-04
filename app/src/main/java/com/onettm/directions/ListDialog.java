@@ -33,7 +33,7 @@ public class ListDialog extends DialogFragment {
         /**
          * Callback for when an item has been selected.
          */
-        public void onItemSelected(LocationItem locationItem);
+        public void onItemSelected(LocationItem locationItem, LocationItem[] destinations);
 
         public LocationItem[] getDestinations();
 
@@ -45,7 +45,7 @@ public class ListDialog extends DialogFragment {
      */
     private static Callbacks sDummyCallbacks = new Callbacks() {
         @Override
-        public void onItemSelected(LocationItem locationItem) {
+        public void onItemSelected(LocationItem locationItem, LocationItem[] destinations) {
         }
 
         @Override
@@ -67,16 +67,17 @@ public class ListDialog extends DialogFragment {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_list_dialog, container, false);
         ListView listView = (ListView) view.findViewById(R.id.item_list);
+        final LocationItem[] destinations = mCallbacks.getDestinations();
         listView.setAdapter(new ArrayAdapter<LocationItem>(
                 getActivity(),
                 android.R.layout.simple_list_item_activated_1,
-                android.R.id.text1,
-                mCallbacks.getDestinations()));
+                android.R.id.text1,destinations
+                ));
 
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                mCallbacks.onItemSelected((LocationItem) parent.getAdapter().getItem(position));
+                mCallbacks.onItemSelected((LocationItem) parent.getAdapter().getItem(position), destinations);
                 dismiss();
             }
         });
