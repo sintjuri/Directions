@@ -12,7 +12,7 @@ import com.readystatesoftware.sqliteasset.SQLiteAssetHelper;
  */
 public class DirDataHelper {
 
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;
     private SQLiteDatabase db = null;
 
     public DirDataHelper() {
@@ -25,6 +25,7 @@ public class DirDataHelper {
 
         DirOpenHelper(Context context,String DatabaseName) {
             super(context, DatabaseName, null, DATABASE_VERSION);
+            this.setForcedUpgrade();
         }
     }
 
