@@ -34,8 +34,12 @@ import com.google.android.gms.ads.AdView;
 import java.sql.Statement;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.Timer;
 
 
@@ -54,18 +58,19 @@ public class CompassActivity extends FragmentActivity implements ListDialog.Call
     public LocationItem[] getDestinations() {
         //TODO change to real implementation
         Location currentLocation = model.getData().getLocation();
+        DistanceComparator<LocationItem> dc = new DistanceComparator<LocationItem>(currentLocation);
 
         long cur_lat = (long)(currentLocation.getLatitude()*10000000);
         long cur_lon = (long) (currentLocation.getLongitude()*10000000);
         Cursor c = DirectionsApplication.getInstance().getDb().rawQuery(String.format("select tag.v, node.lat, node.lon from node \n" +
-                "join tag_node on  node.id=tag_node.node\n" +
+                "join tag_node on node.id=tag_node.node\n" +
                 "join tag on tag.id=tag_node.tag\n" +
                 "where tag.k='name'\n" +
                 "and node.lat > %d - 400000 and node.lat < %d + 400000\n" +
                 "and node.lon > %d - 700000 and node.lon < %d + 700000", cur_lat, cur_lat, cur_lon, cur_lon), null);
 
         c.moveToFirst();
-        List<LocationItem> result = new LinkedList<LocationItem>();
+        Set<LocationItem> result = new HashSet<LocationItem>();
         while(c.moveToNext()){
             String name = c.getString(0);
             double lat = c.getDouble(1)/  10000000;
@@ -75,10 +80,40 @@ public class CompassActivity extends FragmentActivity implements ListDialog.Call
             pv.setLongitude(lon);
             result.add(new LocationItem(pv, name, currentLocation));
         }
+        c.close();
+
+        Cursor c2 = DirectionsApplication.getInstance().getDb().rawQuery(String.format("select tag.v, node.lat, node.lon, way.id from node \n" +
+                "join way on way.id = node.way\n" +
+                "join tag_way on way.id = tag_way.way\n" +
+                "join tag on tag.id=tag_way.tag\n" +
+                "where tag.k='name'\n" +
+                "and node.lat > %d - 400000 and node.lat < %d + 400000\n" +
+                "and node.lon > %d - 700000 and node.lon < %d + 700000", cur_lat, cur_lat, cur_lon, cur_lon), null);
+
+        c2.moveToFirst();
+        Map<Integer, LocationItem> wayNodes = new HashMap<Integer, LocationItem>();
+
+        while(c2.moveToNext()){
+            String name = c2.getString(0);
+            double lat = c2.getDouble(1) / 10000000;
+            double lon = c2.getDouble(2) / 10000000;
+            Integer way = c2.getInt(3);
+            Location pv = new Location("");
+            pv.setLatitude(lat);
+            pv.setLongitude(lon);
+            LocationItem newItem = new LocationItem(pv, name, currentLocation);
+            LocationItem existingItem = wayNodes.get(way);
+            if(existingItem != null){
+                if (dc.compare(existingItem, newItem) < 0) continue;
+            }
+            else wayNodes.put(c2.getInt(3), newItem);
+        }
+        c2.close();
+
+        result.addAll(wayNodes.values());
         LocationItem[] res = new LocationItem[result.size()];
         result.toArray(res);
 
-        DistanceComparator<LocationItem> dc = new DistanceComparator<LocationItem>(currentLocation);
         Arrays.sort(res, dc);
         return res;
     }
