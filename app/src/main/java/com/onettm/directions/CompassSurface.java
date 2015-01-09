@@ -27,10 +27,6 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
         private static final int TARGET_FPS = 30;
         private static final int MINIMUM_SLEEP_TIME = 10;
 
-        private static final int REQUIRED_BEARING_CHANGE = 5;
-        private static final int REQUIRED_BEARING_REPEAT = 40;
-
-
         private static final float COMPASS_ACCEL_RATE = 0.9f;
         private static final float COMPASS_SPEED_MODIFIER = 0.26f;
 
@@ -76,7 +72,6 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
         private void updateCompass(Data data) {
             synchronized (mSurfaceHolder) {
                 float newBearing = data.getPositiveBearing();
-                //float newBearing = bearing;
                 // adjust the new bearing to prevent problems involving 360 -- 0
                 if (compassCurrentBearing < 90 && newBearing > 270) {
                     newBearing -= 360;
@@ -108,27 +103,9 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
             }
         }
 
-        private void updateBearing(Data data) {
-            synchronized (mSurfaceHolder) {
-                // work out the bearing, dampening jitter
-//*                float newBearing = directions.getPositiveBearing(true);
-                float newBearing = data.getPositiveBearing();
-                if (Math.abs(bearing - newBearing) > REQUIRED_BEARING_CHANGE) {
-                    bearing = newBearing; // the change is to insignificant to be displayed
-                    repeatedBearingCount = 0; // reset the repetition count
-                } else {
-                    repeatedBearingCount++;
-                    if (repeatedBearingCount > REQUIRED_BEARING_REPEAT) {
-                        bearing = newBearing;
-                        repeatedBearingCount = 0;
-                    }
-                }
-            }
-        }
 
         void update(Data data) {
 //*            synchronized (mSurfaceHolder) {
-            updateBearing(data);
             updateCompass(data);
             updateAccuracy(data);
 //*            }
@@ -167,10 +144,9 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
             if (displayedStatus == Model.STATUS_INTERFERENCE) {
                 canvas.drawBitmap(interferenceImage, null, cardRect, imagePaint);
             }else {
-
                 canvas.rotate(compassCurrentBearing * -1, canvasCenterX, canvasCenterY);
                 canvas.drawBitmap(cardImage, null, cardRect, imagePaint);
-                canvas.rotate(data.getDestinationBearing(), canvasCenterX, canvasCenterY);
+                canvas.rotate(compassCurrentBearing - data.getPositiveBearing() - data.getDestinationBearing(), canvasCenterX, canvasCenterY);
                 canvas.drawBitmap(pointerImage, null, cardRect, imagePaint);
             }
 
@@ -318,9 +294,6 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
 
 
     private int displayedStatus;
-
-    private float bearing;
-    private int repeatedBearingCount;
 
     private float compassCurrentBearing;
     private float compassSpeed;
