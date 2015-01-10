@@ -93,7 +93,6 @@ public class Data {
     }
 
     private float[] getOrientationData() {
-        // if there is no new data, bail here
         if(magValues == null || accelValues == null){
             return orientationDataCache;
         }

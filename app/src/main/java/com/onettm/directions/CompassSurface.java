@@ -1,9 +1,3 @@
-/*******************************************************************************
- * NiceCompass
- * Released under the BSD License. See README or LICENSE.
- * Copyright (c) 2011, Digital Lizard (Oscar Key, Thomas Boby)
- * All rights reserved.
- ******************************************************************************/
 package com.onettm.directions;
 
 import android.graphics.Bitmap;
@@ -26,6 +20,10 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
 
         private static final int TARGET_FPS = 30;
         private static final int MINIMUM_SLEEP_TIME = 10;
+
+        private static final int REQUIRED_BEARING_CHANGE = 3;
+        private static final int REQUIRED_BEARING_REPEAT = 10;
+
 
         private static final float COMPASS_ACCEL_RATE = 0.9f;
         private static final float COMPASS_SPEED_MODIFIER = 0.26f;
@@ -54,36 +52,33 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
 
 
         public CompassThread(SurfaceHolder holder, Model model) {
-
-            // get handles to some important objects
             mSurfaceHolder = holder;
             this.model = model;
-
-            /*Resources res = context.getResources();
-// cache handles to our key sprites & other drawables
-            mLanderImage = context.getResources().getDrawable(
-                    R.drawable.lander_plain);
-            mFiringImage = context.getResources().getDrawable(
-                    R.drawable.lander_firing);
-            mCrashedImage = context.getResources().getDrawable(
-                    R.drawable.lander_crashed);*/
         }
 
-        private void updateCompass(Data data) {
-            synchronized (mSurfaceHolder) {
-                float newBearing = data.getPositiveBearing();
-                // adjust the new bearing to prevent problems involving 360 -- 0
-                if (compassCurrentBearing < 90 && newBearing > 270) {
-                    newBearing -= 360;
-                }
-                if (compassCurrentBearing > 270 && newBearing < 90) {
-                    newBearing += 360;
-                }
-                //accuracyText = "target: "+newBearing+" position:"+compassCurrentBearing;
 
-                float distance = newBearing - compassCurrentBearing;
+        private void updateBearing(Data data) {
+            synchronized (mSurfaceHolder) {
+
+                float newBearing = data.getPositiveBearing();
+                if (Math.abs(compassBearingTo - newBearing) > REQUIRED_BEARING_CHANGE) {
+                    compassBearingTo = newBearing;
+                    repeatedBearingCount = 0;
+                }else{
+                    repeatedBearingCount++;
+                    if(repeatedBearingCount > REQUIRED_BEARING_REPEAT){
+                        compassBearingTo = newBearing;
+                        repeatedBearingCount = 0;
+                    }
+                }
+                if (compassCurrentBearing < 90 && compassBearingTo > 270) {
+                    compassBearingTo -= 360;
+                }
+                if (compassCurrentBearing > 270 && compassBearingTo < 90) {
+                    compassBearingTo += 360;
+                }
+                float distance = compassBearingTo - compassCurrentBearing;
                 float targetSpeed = distance * COMPASS_SPEED_MODIFIER;
-                // accelerate the directions accordingly
                 if (targetSpeed > compassSpeed) {
                     compassSpeed += COMPASS_ACCEL_RATE;
                 }
@@ -93,7 +88,7 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
                 // stop the directions speed dropping too low
                 compassCurrentBearing += compassSpeed;
 
-                // adjust the bearing for a complete circle
+                // adjust the compassBearingTo for a complete circle
                 if (compassCurrentBearing >= 360) {
                     compassCurrentBearing -= 360;
                 }
@@ -103,12 +98,9 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
             }
         }
 
-
         void update(Data data) {
-//*            synchronized (mSurfaceHolder) {
-            updateCompass(data);
+            updateBearing(data);
             updateAccuracy(data);
-//*            }
         }
 
         public void doDraw(Canvas canvas, final Data data) {
@@ -146,7 +138,7 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
             }else {
                 canvas.rotate(compassCurrentBearing * -1, canvasCenterX, canvasCenterY);
                 canvas.drawBitmap(cardImage, null, cardRect, imagePaint);
-                canvas.rotate(compassCurrentBearing - data.getPositiveBearing() - data.getDestinationBearing(), canvasCenterX, canvasCenterY);
+                canvas.rotate(data.getDestinationBearing() * -1, canvasCenterX, canvasCenterY);
                 canvas.drawBitmap(pointerImage, null, cardRect, imagePaint);
             }
 
@@ -294,6 +286,9 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
 
 
     private int displayedStatus;
+
+    private float compassBearingTo;
+    private int repeatedBearingCount;
 
     private float compassCurrentBearing;
     private float compassSpeed;
