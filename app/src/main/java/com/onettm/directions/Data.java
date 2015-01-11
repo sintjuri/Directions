@@ -64,7 +64,7 @@ public class Data {
 
     public float getPositiveBearing() {
         // take the given bearing and convert it into 0 <= x < 360
-        float bearing = getBearing(true);
+        float bearing = getBearing(false);
         if(bearing < 0){
             bearing += 360;
         }
@@ -152,4 +152,7 @@ public class Data {
         this.declination = declination;
     }
 
+    public float getDeclination() {
+        return declination;
+    }
 }
