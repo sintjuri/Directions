@@ -17,7 +17,7 @@ public class LocationItem {
     public String toString() {
         String result = name;
         if ((currentLocation != null) && (location != null)) {
-            result = String.format("%s: %4.0f", name, currentLocation.distanceTo(location));
+            result = String.format("%s %s: %4.0f", Cardinal.getCardinal(currentLocation.bearingTo(location)).getLabel(), name, currentLocation.distanceTo(location));
         }
         return result;
     }

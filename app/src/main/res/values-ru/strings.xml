@@ -21,4 +21,13 @@
     <string name="middle">Средне</string>
     <string name="far">Далеко</string>
 
+    <string name="North">С</string>
+    <string name="NorthEast">СВ</string>
+    <string name="East">В</string>
+    <string name="SouthEast">ЮВ</string>
+    <string name="South">Ю</string>
+    <string name="SouthWest">ЮЗ</string>
+    <string name="West">З</string>
+    <string name="NorthWest">СЗ</string>
+
 </resources>
