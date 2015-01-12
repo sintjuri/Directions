@@ -17,5 +17,11 @@
     <string name="arriving">You are arrived</string>
     <string name="banner_ad_unit_id">ca-app-pub-3940256099942544/6300978111</string>
 
+    <string name="pref_zone">Searching zone</string>
+    <string name="pref_select_zone">Please select searching zone</string>
+    <string name="near">Near</string>
+    <string name="middle">Middle</string>
+    <string name="far">Far</string>
+
 
 </resources>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <ListPreference
+        android:key="pref_radius"
+        android:title="@string/pref_zone"
+        android:dialogTitle="@string/pref_select_zone"
+        android:entries="@array/pref_zone_entries"
+        android:entryValues="@array/pref_zone_values"
+        android:defaultValue="@string/near" />
+</PreferenceScreen>

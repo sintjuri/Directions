@@ -15,4 +15,10 @@
     <string name="please_select">Пожалуйста выберите</string>
     <string name="arriving">Вы прибыли в точку назначения</string>
 
+    <string name="pref_select_zone">Выберите пожалуйста зону поиска</string>
+    <string name="pref_zone">Зона поиска</string>
+    <string name="near">Близко</string>
+    <string name="middle">Средне</string>
+    <string name="far">Далеко</string>
+
 </resources>

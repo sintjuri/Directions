@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array
+        name="pref_zone_entries">
+        <item>@string/near</item>
+        <item>@string/middle</item>
+        <item>@string/far</item>
+    </string-array>
+
+    <string-array
+        name="pref_zone_values">
+        <item>5</item>
+        <item>25</item>
+        <item>50</item>
+    </string-array>
+</resources>
