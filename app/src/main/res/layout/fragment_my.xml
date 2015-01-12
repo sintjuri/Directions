@@ -12,19 +12,25 @@
         android:layout_height="wrap_content"
         android:text="@string/load" />
 
-    <TextView
+    <HorizontalScrollView
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:textColor="@color/wallet_dim_foreground_inverse_holo_dark"
-        android:textSize="32sp"
-        android:id="@+id/textOutput"
-        android:scrollHorizontally="true"
-        android:singleLine="true"/>
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/textOutput"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:scrollHorizontally="true"
+            android:singleLine="true"
+            android:textColor="@color/wallet_dim_foreground_inverse_holo_dark"
+            android:textSize="32sp" />
+    </HorizontalScrollView>
+
 
     <LinearLayout
         android:id="@+id/compassSurfaceContainer"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"/>
+        android:orientation="horizontal" />
 
 </LinearLayout>
