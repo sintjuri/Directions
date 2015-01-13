@@ -64,9 +64,9 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
                 if (Math.abs(compassBearingTo - newBearing) > REQUIRED_BEARING_CHANGE) {
                     compassBearingTo = newBearing;
                     repeatedBearingCount = 0;
-                }else{
+                } else {
                     repeatedBearingCount++;
-                    if(repeatedBearingCount > REQUIRED_BEARING_REPEAT){
+                    if (repeatedBearingCount > REQUIRED_BEARING_REPEAT) {
                         compassBearingTo = newBearing;
                         repeatedBearingCount = 0;
                     }
@@ -135,7 +135,7 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
 
             if (displayedStatus == Model.STATUS_INTERFERENCE) {
                 canvas.drawBitmap(interferenceImage, null, cardRect, imagePaint);
-            }else {
+            } else {
                 canvas.rotate(compassCurrentBearing * -1, canvasCenterX, canvasCenterY);
                 canvas.drawBitmap(cardImage, null, cardRect, imagePaint);
                 canvas.rotate(data.getDestinationBearing() - data.getDeclination(), canvasCenterX, canvasCenterY);
@@ -345,13 +345,15 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
         // we have to tell thread to shut down & wait for it to finish, or else
         // it might touch the Surface after we return and explode
         boolean retry = true;
-        animationThread.setRunning(false);
-        while (retry) {
-            try {
-                animationThread.join();
-                retry = false;
-            } catch (InterruptedException e) {
-                Log.d("CompassSurface", e.getMessage());
+        if (animationThread != null) {
+            animationThread.setRunning(false);
+            while (retry) {
+                try {
+                    animationThread.join();
+                    retry = false;
+                } catch (InterruptedException e) {
+                    Log.d("CompassSurface", e.getMessage());
+                }
             }
         }
     }

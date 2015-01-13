@@ -1,13 +1,13 @@
 package com.onettm.directions;
 
 public enum Cardinal {
-    North(0f, 45f, "N"),
+    North(0f, 45f, "N "),
     NorthEast(45f, 90f, "NE"),
-    East(90f, 135f, "E"),
+    East(90f, 135f, "E "),
     SouthEast(135f, 180f, "SE"),
-    South(180f, 225f, "S"),
+    South(180f, 225f, "S "),
     SouthWest(225f, 270f, "SW"),
-    West(270f, 315f, "W"),
+    West(270f, 315f, "W "),
     NorthWest(315f, 360f, "NW");
 
 

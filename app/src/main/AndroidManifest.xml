@@ -1,12 +1,12 @@
-<?xml version="1.0" encoding="utf-8"?><!--
+<?xml version="1.0" encoding="utf-8"?>
+<!--
   NiceCompass
   Released under the BSD License. See README or LICENSE.
   Copyright (c) 2011, Digital Lizard (Oscar Key, Thomas Boby)
   All rights reserved.
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.onettm.directions">
-
+    package="com.onettm.directions" >
 
     <supports-screens
         android:anyDensity="true"
@@ -18,17 +18,17 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
-
-    <application android:name="com.onettm.directions.DirectionsApplication"
+    <application
+        android:name=".DirectionsApplication"
         android:allowClearUserData="true"
         android:icon="@drawable/ic_launcher"
-        android:label="Directions">
+        android:label="Directions" >
         <activity
             android:name=".CompassActivity"
             android:screenOrientation="portrait"
-            android:theme="@android:style/Theme.NoTitleBar">>
+            android:theme="@android:style/Theme.NoTitleBar" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -37,8 +37,13 @@
         <activity
             android:name="com.google.android.gms.ads.AdActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize" />
+        <activity
+            android:name=".SettingsActivity"
+            android:label="@string/settings" >
+        </activity>
 
-        <meta-data android:name="com.google.android.gms.version"
+        <meta-data
+            android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
 
     </application>

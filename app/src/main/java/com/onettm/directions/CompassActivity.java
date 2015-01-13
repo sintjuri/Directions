@@ -1,25 +1,24 @@
-/*******************************************************************************
- * NiceCompass
- * Released under the BSD License. See README or LICENSE.
- * Copyright (c) 2011, Digital Lizard (Oscar Key, Thomas Boby)
- * All rights reserved.
- ******************************************************************************/
 package com.onettm.directions;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
+import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -47,6 +46,38 @@ public class CompassActivity extends FragmentActivity implements ListDialog.Call
         super.onCreate(savedInstanceState);
         model = new Model();
         setContentView(R.layout.main);
+        loadPref();
+        PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+  /*
+   * Because it's onlt ONE option in the menu.
+   * In order to make it simple, We always start SettingsActivity
+   * without checking.
+   */
+
+        Intent intent = new Intent();
+        intent.setClass(CompassActivity.this, SettingsActivity.class);
+        startActivityForResult(intent, 0);
+
+        return true;
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        loadPref();
+    }
+
+    private void loadPref() {
+        SharedPreferences mySharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        String zonePreference = mySharedPreferences.getString("pref_radius", "5");
+        //TODO initialize preference
+        //prefCheckBox.setChecked(my_checkbox_preference);
+
     }
 
     @Override
@@ -55,8 +86,8 @@ public class CompassActivity extends FragmentActivity implements ListDialog.Call
         Location currentLocation = model.getData().getLocation();
         DistanceComparator<LocationItem> dc = new DistanceComparator<LocationItem>(currentLocation);
 
-        long cur_lat = (long)(currentLocation.getLatitude()*10000000);
-        long cur_lon = (long) (currentLocation.getLongitude()*10000000);
+        long cur_lat = (long) (currentLocation.getLatitude() * 10000000);
+        long cur_lon = (long) (currentLocation.getLongitude() * 10000000);
         Cursor c = DirectionsApplication.getInstance().getDb().rawQuery(String.format("select tag.v, node.lat, node.lon from node \n" +
                 "join tag_node on node.id=tag_node.node\n" +
                 "join tag on tag.id=tag_node.tag\n" +
@@ -66,10 +97,10 @@ public class CompassActivity extends FragmentActivity implements ListDialog.Call
 
         c.moveToFirst();
         Set<LocationItem> result = new HashSet<LocationItem>();
-        while(c.moveToNext()){
+        while (c.moveToNext()) {
             String name = c.getString(0);
-            double lat = c.getDouble(1)/  10000000;
-            double lon = c.getDouble(2)/10000000;
+            double lat = c.getDouble(1) / 10000000;
+            double lon = c.getDouble(2) / 10000000;
             Location pv = new Location("");
             pv.setLatitude(lat);
             pv.setLongitude(lon);
@@ -88,7 +119,7 @@ public class CompassActivity extends FragmentActivity implements ListDialog.Call
         c2.moveToFirst();
         Map<Integer, LocationItem> wayNodes = new HashMap<Integer, LocationItem>();
 
-        while(c2.moveToNext()){
+        while (c2.moveToNext()) {
             String name = c2.getString(0);
             double lat = c2.getDouble(1) / 10000000;
             double lon = c2.getDouble(2) / 10000000;
@@ -98,10 +129,9 @@ public class CompassActivity extends FragmentActivity implements ListDialog.Call
             pv.setLongitude(lon);
             LocationItem newItem = new LocationItem(pv, name, currentLocation);
             LocationItem existingItem = wayNodes.get(way);
-            if(existingItem != null){
+            if (existingItem != null) {
                 if (dc.compare(existingItem, newItem) < 0) continue;
-            }
-            else wayNodes.put(c2.getInt(3), newItem);
+            } else wayNodes.put(c2.getInt(3), newItem);
         }
         c2.close();
 
@@ -113,7 +143,7 @@ public class CompassActivity extends FragmentActivity implements ListDialog.Call
         return res;
     }
 
-    static class DistanceComparator<L extends LocationItem>  implements java.util.Comparator<L>{
+    static class DistanceComparator<L extends LocationItem> implements java.util.Comparator<L> {
 
         private final Location currentLoc;
 
@@ -123,18 +153,20 @@ public class CompassActivity extends FragmentActivity implements ListDialog.Call
 
         @Override
         public int compare(L l, L l2) {
-            if(l==l2) return 0;
+            if (l == l2) return 0;
             if (l == null) return -1;
             if (l2 == null) return 1;
 
-            if(l.getLocation()== null) return -1;
-            if(l2.getLocation() == null) return 1;
+            if (l.getLocation() == null) return -1;
+            if (l2.getLocation() == null) return 1;
 
             float d = currentLoc.distanceTo(l.getLocation());
             float d2 = currentLoc.distanceTo(l2.getLocation());
             return Float.compare(d, d2);
         }
-    };
+    }
+
+    ;
 
     @Override
     public void onItemSelected(LocationItem locationItem, LocationItem[] destinations) {
@@ -170,6 +202,18 @@ public class CompassActivity extends FragmentActivity implements ListDialog.Call
         public PlaceholderFragment() {
         }
 
+        @Override
+        public void onCreate(Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
+            setHasOptionsMenu(true);
+        }
+
+        @Override
+        public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+            super.onCreateOptionsMenu(menu, inflater);
+            menu.clear();
+            inflater.inflate(R.menu.menu, menu);
+        }
 
         /**
          * Function to show settings alert dialog

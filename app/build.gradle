@@ -6,7 +6,7 @@ android {
 
     defaultConfig {
         applicationId "com.onettm.directions"
-        minSdkVersion 10
+        minSdkVersion 11
         targetSdkVersion 17
         versionCode 1
         versionName "1.0"
@@ -25,6 +25,5 @@ dependencies {
 
     compile "com.android.support:support-v4:18.0.+"
     compile 'com.google.android.gms:play-services:+'
-
     compile 'com.readystatesoftware.sqliteasset:sqliteassethelper:2.0.1'
 }

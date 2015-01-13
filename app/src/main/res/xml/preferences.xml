@@ -7,5 +7,5 @@
         android:dialogTitle="@string/pref_select_zone"
         android:entries="@array/pref_zone_entries"
         android:entryValues="@array/pref_zone_values"
-        android:defaultValue="@string/near" />
+        android:defaultValue="5" />
 </PreferenceScreen>
