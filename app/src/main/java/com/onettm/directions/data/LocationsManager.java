@@ -20,11 +20,15 @@ import java.util.Set;
  * Created by agrigory on 1/16/15.
  */
 public class LocationsManager {
+
+    private Collection<LocationItem> locations = Collections.emptyList();
+
     public void invalidate() {
     }
 
     public Collection<LocationItem> getLocationItems(){
-        return new ArrayList<LocationItem>();
+        request();
+        return locations;
     }
 
     private void request(){
@@ -101,6 +105,7 @@ public class LocationsManager {
         Collections.sort(res, dc);
 
         System.err.println("TIME getDestinations 16 " + new SimpleDateFormat("HH:mm:ss.SSS").format(new Date()));
+        this.locations = res;
     }
 
 

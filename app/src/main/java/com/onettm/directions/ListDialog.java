@@ -82,7 +82,7 @@ public class ListDialog extends DialogFragment {
 
             @Override
             protected Object doInBackground(ListView... listViews) {
-                Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
+                //Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
                 System.err.println("TIME doInBackground 1 " + new SimpleDateFormat("HH:mm:ss.SSS").format(new Date()));
                 LocationItem[] result = mCallbacks.getDestinations();
                 System.err.println("TIME doInBackground 2 " + new SimpleDateFormat("HH:mm:ss.SSS").format(new Date()));
