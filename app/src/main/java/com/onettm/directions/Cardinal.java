@@ -23,7 +23,6 @@ public enum Cardinal {
     }
 
     public static Cardinal getCardinal(float bearing){
-        Cardinal result = null;
         if(bearing < 0){
             bearing += 360;
         }
@@ -32,11 +31,10 @@ public enum Cardinal {
 
         for(Cardinal cardinal : Cardinal.values()){
             if((cardinal.from <= bearing) && (bearing<cardinal.to)){
-                result= cardinal;
-                break;
+                return cardinal;
             }
         }
-        return result;
+        return null;
     }
 
     public String getLabel(){

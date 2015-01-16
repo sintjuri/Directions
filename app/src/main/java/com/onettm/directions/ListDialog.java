@@ -1,8 +1,12 @@
 package com.onettm.directions;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
+import android.support.v4.app.FragmentManager;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,6 +14,8 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 
 public class ListDialog extends DialogFragment {
@@ -65,22 +71,67 @@ public class ListDialog extends DialogFragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View view = inflater.inflate(R.layout.fragment_list_dialog, container, false);
+        final View view = inflater.inflate(R.layout.fragment_list_dialog, container, false);
         ListView listView = (ListView) view.findViewById(R.id.item_list);
-        final LocationItem[] destinations = mCallbacks.getDestinations();
-        listView.setAdapter(new ArrayAdapter<LocationItem>(
-                getActivity(),
-                android.R.layout.simple_list_item_activated_1,
-                android.R.id.text1,destinations
-                ));
 
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+        AsyncTask<ListView, Void, Object> at = new AsyncTask<ListView, Void, Object>() {
+
+            ListView listView;
+            ProgressDialog progress;
+
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                mCallbacks.onItemSelected((LocationItem) parent.getAdapter().getItem(position), destinations);
-                dismiss();
+            protected void onPreExecute() {
+                super.onPreExecute();
+                System.err.println("TIME PREEXECUTE " + new SimpleDateFormat("HH:mm:ss.SSS").format(new Date()));
+
+                progress = new ProgressDialog(getActivity());
+                progress.setTitle("Loading");
+                progress.setMessage("Wait while loading...");
+                progress.show();
             }
-        });
+
+            @Override
+            protected Object doInBackground(ListView... listViews) {
+                Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
+                listView = listViews[0];
+                System.err.println("TIME doInBackground 1 " + new SimpleDateFormat("HH:mm:ss.SSS").format(new Date()));
+                LocationItem[] result = mCallbacks.getDestinations();
+                System.err.println("TIME doInBackground 2 " + new SimpleDateFormat("HH:mm:ss.SSS").format(new Date()));
+                return result;
+            }
+
+
+            @Override
+            protected void onPostExecute(final Object destinations) {
+                super.onPostExecute(destinations);
+
+                System.err.println("TIME onPostExecute 1 " + new SimpleDateFormat("HH:mm:ss.SSS").format(new Date()));
+
+                listView.setAdapter(new ArrayAdapter<LocationItem>(
+                        getActivity(),
+                        android.R.layout.simple_list_item_activated_1,
+                        android.R.id.text1, (LocationItem[])destinations
+                ));
+                System.err.println("TIME onPostExecute 2 " + new SimpleDateFormat("HH:mm:ss.SSS").format(new Date()));
+
+                listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                        mCallbacks.onItemSelected((LocationItem) parent.getAdapter().getItem(position), (LocationItem[])destinations);
+                        dismiss();
+                    }
+                });
+                System.err.println("TIME onPostExecute 3 " + new SimpleDateFormat("HH:mm:ss.SSS").format(new Date()));
+
+                progress.dismiss();
+            }
+        };
+        at.execute(listView);
+
+
+
+
 
         return view;
     }

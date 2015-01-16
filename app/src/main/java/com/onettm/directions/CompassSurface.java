@@ -10,11 +10,14 @@ import android.util.Log;
 import android.view.SurfaceView;
 import android.view.SurfaceHolder;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 public class CompassSurface extends SurfaceView implements SurfaceHolder.Callback {
 
 
     private final Model model;
     private final CompassActivity.PlaceholderFragment context;
+
 
     class CompassThread extends Thread {
 
@@ -38,6 +41,8 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
         private final SurfaceHolder mSurfaceHolder;
         private volatile boolean mRun;
 
+        private Boolean flag = new Boolean(false);
+
         /**
          * Used to signal the thread whether it should be running or not.
          * Passing true allows the thread to run; passing false will shut it
@@ -48,6 +53,10 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
          */
         public void setRunning(boolean b) {
             mRun = b;
+        }
+
+        public void setPausing(boolean b) {
+            flag = b;
         }
 
 
@@ -236,30 +245,39 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
             long maxSleepTime = (long) Math.floor(1000 / TARGET_FPS);
             // loop whilst we are told to
             while (mRun) {
-                data = model.getData();
+                long requiredSleepTime = MINIMUM_SLEEP_TIME;
+                synchronized (model) {
+                    if (flag) {
+                        try {
+                            model.wait();
+                        } catch (InterruptedException e) {
+                            Log.d("CompassSurface", e.getMessage());
+                        }
+                    }
+                    data = model.getData();
 //*                synchronized (mSurfaceHolder) {
-                // record the start time
-                long startTime = System.currentTimeMillis();
-                // update the animation
-                update(data);
-                triggerDraw(data);
+                    // record the start time
+                    long startTime = System.currentTimeMillis();
+                    // update the animation
+                    update(data);
+                    triggerDraw(data);
 
-                // work out how long to sleep for
-                long finishTime = System.currentTimeMillis();
-                long requiredSleepTime = maxSleepTime - (finishTime - startTime);
-                // check if the sleep time was too low
-                if (requiredSleepTime < MINIMUM_SLEEP_TIME) {
-                    requiredSleepTime = MINIMUM_SLEEP_TIME;
+                    // work out how long to sleep for
+                    long finishTime = System.currentTimeMillis();
+                    requiredSleepTime = maxSleepTime - (finishTime - startTime);
+                    // check if the sleep time was too low
+                    if (requiredSleepTime < MINIMUM_SLEEP_TIME) {
+                        requiredSleepTime = MINIMUM_SLEEP_TIME;
+                    }
+                    // try to sleep for this time
+                    try {
+                        Thread.sleep(requiredSleepTime);
+                    } catch (InterruptedException e) {
+                        Log.d("CompassSurface", e.getMessage());
+                    }
                 }
 
 
-                // try to sleep for this time
-                try {
-                    Thread.sleep(requiredSleepTime);
-                } catch (InterruptedException e) {
-                    // do nothing
-                }
-//*                }
             }
         }
     }
@@ -269,10 +287,6 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
      */
 
     private static final int STATUS_NO_EVENT = -1;
-
-
-    //private SensorListener directions;
-    //private volatile boolean isRunning;
 
     // images
     private Bitmap cardImage;
@@ -339,6 +353,22 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
      */
     public void surfaceDestroyed(SurfaceHolder holder) {
         stopAnimation();
+    }
+
+    public void pauseAnimation() {
+        synchronized (model) {
+            Log.d("PROCESS!!", "wait1");
+            animationThread.setPausing(true);
+            Log.d("PROCESS!!", "wait2");
+        }
+    }
+
+    public void resumeAnimation() {
+        synchronized (model) {
+            Log.d("PROCESS!!", "notify");
+            animationThread.setPausing(false);
+            model.notify();
+        }
     }
 
     public void stopAnimation() {
