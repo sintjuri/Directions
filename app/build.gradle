@@ -26,4 +26,5 @@ dependencies {
     compile "com.android.support:support-v4:18.0.+"
     compile 'com.google.android.gms:play-services:+'
     compile 'com.readystatesoftware.sqliteasset:sqliteassethelper:2.0.1'
+    androidTestCompile 'junit:junit:4.11'
 }

@@ -1,21 +1,17 @@
 package com.onettm.directions;
 
+import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.ProgressDialog;
+import android.app.Fragment;
+import android.app.FragmentManager;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.database.Cursor;
-import android.location.Location;
 import android.location.LocationManager;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.FragmentManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -31,24 +27,15 @@ import android.widget.Toast;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 
-import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.Collection;
 import java.util.Timer;
 
 
-public class CompassActivity extends FragmentActivity implements ListDialog.Callbacks {
-
-    private Model model;
+public class CompassActivity extends Activity implements ListDialog.Callbacks {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        model = new Model();
         setContentView(R.layout.main);
         loadPref();
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
@@ -88,113 +75,19 @@ public class CompassActivity extends FragmentActivity implements ListDialog.Call
 
     @Override
     public LocationItem[] getDestinations() {
-        //TODO change to real implementation
-        System.err.println("TIME getDestinations 1 " + new SimpleDateFormat("HH:mm:ss.SSS").format(new Date()));
-        Location currentLocation = model.getData().getLocation();
-        System.err.println("TIME getDestinations 2 " + new SimpleDateFormat("HH:mm:ss.SSS").format(new Date()));
-        DistanceComparator<LocationItem> dc = new DistanceComparator<LocationItem>(currentLocation);
 
-        System.err.println("TIME getDestinations 3 " + new SimpleDateFormat("HH:mm:ss.SSS").format(new Date()));
-        long cur_lat = (long) (currentLocation.getLatitude() * 10000000);
-        long cur_lon = (long) (currentLocation.getLongitude() * 10000000);
-        System.err.println("TIME getDestinations 4 " + new SimpleDateFormat("HH:mm:ss.SSS").format(new Date()));
-        Cursor c = DirectionsApplication.getInstance().getDb().rawQuery(String.format("select tag.v, node.lat, node.lon from node \n" +
-                "join tag_node on node.id=tag_node.node\n" +
-                "join tag on tag.id=tag_node.tag\n" +
-                "where tag.k='name'\n" +
-                "and node.lat > %d - 400000 and node.lat < %d + 400000\n" +
-                "and node.lon > %d - 700000 and node.lon < %d + 700000", cur_lat, cur_lat, cur_lon, cur_lon), null);
+        Collection<LocationItem> result = DirectionsApplication.getInstance().getLocationsManager().getLocationItems();
 
-        System.err.println("TIME getDestinations 5 " + new SimpleDateFormat("HH:mm:ss.SSS").format(new Date()));
-        c.moveToFirst();
-        System.err.println("TIME getDestinations 6 " + new SimpleDateFormat("HH:mm:ss.SSS").format(new Date()));
-        Set<LocationItem> result = new HashSet<LocationItem>();
-        System.err.println("TIME getDestinations 7 " + new SimpleDateFormat("HH:mm:ss.SSS").format(new Date()));
-        while (c.moveToNext()) {
-            String name = c.getString(0);
-            double lat = c.getDouble(1) / 10000000;
-            double lon = c.getDouble(2) / 10000000;
-            Location pv = new Location("");
-            pv.setLatitude(lat);
-            pv.setLongitude(lon);
-            result.add(new LocationItem(pv, name, currentLocation));
-        }
-        System.err.println("TIME getDestinations 8 " + new SimpleDateFormat("HH:mm:ss.SSS").format(new Date()));
-        c.close();
-        System.err.println("TIME getDestinations 9 " + new SimpleDateFormat("HH:mm:ss.SSS").format(new Date()));
+        LocationItem[] res;
+        res = result.toArray(new LocationItem[0]);
 
-        Cursor c2 = DirectionsApplication.getInstance().getDb().rawQuery(String.format("select tag.v, node.lat, node.lon, way.id from node \n" +
-                "join way on way.id = node.way\n" +
-                "join tag_way on way.id = tag_way.way\n" +
-                "join tag on tag.id=tag_way.tag\n" +
-                "where tag.k='name'\n" +
-                "and node.lat > %d - 400000 and node.lat < %d + 400000\n" +
-                "and node.lon > %d - 700000 and node.lon < %d + 700000", cur_lat, cur_lat, cur_lon, cur_lon), null);
-
-        System.err.println("TIME getDestinations 10 " + new SimpleDateFormat("HH:mm:ss.SSS").format(new Date()));
-        c2.moveToFirst();
-        System.err.println("TIME getDestinations 11 " + new SimpleDateFormat("HH:mm:ss.SSS").format(new Date()));
-        Map<Integer, LocationItem> wayNodes = new HashMap<Integer, LocationItem>();
-        System.err.println("TIME getDestinations 12 " + new SimpleDateFormat("HH:mm:ss.SSS").format(new Date()));
-
-        while (c2.moveToNext()) {
-            String name = c2.getString(0);
-            double lat = c2.getDouble(1) / 10000000;
-            double lon = c2.getDouble(2) / 10000000;
-            Integer way = c2.getInt(3);
-            Location pv = new Location("");
-            pv.setLatitude(lat);
-            pv.setLongitude(lon);
-            LocationItem newItem = new LocationItem(pv, name, currentLocation);
-            LocationItem existingItem = wayNodes.get(way);
-            if (existingItem != null) {
-                if (dc.compare(existingItem, newItem) < 0) continue;
-            } else wayNodes.put(c2.getInt(3), newItem);
-        }
-        System.err.println("TIME getDestinations 13 " + new SimpleDateFormat("HH:mm:ss.SSS").format(new Date()));
-        c2.close();
-        System.err.println("TIME getDestinations 14 " + new SimpleDateFormat("HH:mm:ss.SSS").format(new Date()));
-
-        result.addAll(wayNodes.values());
-        System.err.println("TIME getDestinations 15 " + new SimpleDateFormat("HH:mm:ss.SSS").format(new Date()));
-        LocationItem[] res = new LocationItem[result.size()];
-        System.err.println("TIME getDestinations 16 " + new SimpleDateFormat("HH:mm:ss.SSS").format(new Date()));
-        result.toArray(res);
-
-        System.err.println("TIME getDestinations 17 " + new SimpleDateFormat("HH:mm:ss.SSS").format(new Date()));
-        Arrays.sort(res, dc);
-        System.err.println("TIME getDestinations 18 " + new SimpleDateFormat("HH:mm:ss.SSS").format(new Date()));
         return res;
     }
-
-    static class DistanceComparator<L extends LocationItem> implements java.util.Comparator<L> {
-
-        private final Location currentLoc;
-
-        DistanceComparator(Location currentLoc) {
-            this.currentLoc = currentLoc;
-        }
-
-        @Override
-        public int compare(L l, L l2) {
-            if (l == l2) return 0;
-            if (l == null) return -1;
-            if (l2 == null) return 1;
-
-            if (l.getLocation() == null) return -1;
-            if (l2.getLocation() == null) return 1;
-
-            float d = currentLoc.distanceTo(l.getLocation());
-            float d2 = currentLoc.distanceTo(l2.getLocation());
-            return Float.compare(d, d2);
-        }
-    }
-
-    ;
 
     @Override
     public void onItemSelected(LocationItem locationItem, LocationItem[] destinations) {
 
+        Model model = DirectionsApplication.getInstance().getModel();
         model.setDecisionPoint(locationItem.getCurrentLocation());
         model.setDecisionPointLocationItems(destinations);
         model.setDestinationLocation(locationItem.getLocation());
@@ -203,15 +96,11 @@ public class CompassActivity extends FragmentActivity implements ListDialog.Call
 
     }
 
-    public Model getModel() {
-        return model;
-    }
 
     public static class PlaceholderFragment extends Fragment {
 
         private static final long REPEATER_COMPASS_TIMER = 10;
         public static final int REPEATER_FIRST_TIME_OPEN_DIALOG = 1000;
-        private Model model;
 
         private CompassSurface surface;
         private LinearLayout surfaceContainer;
@@ -277,7 +166,6 @@ public class CompassActivity extends FragmentActivity implements ListDialog.Call
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
             View rootView = inflater.inflate(R.layout.fragment_my, container, false);
-            this.model = ((CompassActivity) getActivity()).getModel();
 
             surfaceContainer = (LinearLayout) rootView.findViewById(R.id.compassSurfaceContainer);
 
@@ -293,9 +181,9 @@ public class CompassActivity extends FragmentActivity implements ListDialog.Call
                 }
             });
 
-            compass = new SensorListener(getActivity(), model);
+            compass = new SensorListener(getActivity());
             Timer firstTimeOnenDialogTimer = new Timer();
-            firstTimeOnenDialogTimer.schedule(new CheckFirstTimeToOpenDialogTask(this, model), 0, REPEATER_FIRST_TIME_OPEN_DIALOG);
+            firstTimeOnenDialogTimer.schedule(new CheckFirstTimeToOpenDialogTask(this), 0, REPEATER_FIRST_TIME_OPEN_DIALOG);
 
             handler = new Handler();
 
@@ -336,17 +224,17 @@ public class CompassActivity extends FragmentActivity implements ListDialog.Call
                     .isProviderEnabled(LocationManager.GPS_PROVIDER)) {
                 showSettingsAlert();
             }
-            surface = new CompassSurface(this, model);
+            surface = new CompassSurface(this);
             // add the directions
             surfaceContainer.removeAllViews();
             surfaceContainer.addView(surface);
 
             compassTimer = new Timer();
-            compassTimer.schedule(new CompassTimerTask((CompassActivity) getActivity(), this, model), 0, REPEATER_COMPASS_TIMER);
+            compassTimer.schedule(new CompassTimerTask((CompassActivity) getActivity(), this), 0, REPEATER_COMPASS_TIMER);
         }
 
         public void openListLocations() {
-            if (model.getData().getLocation() != null) {
+            if (DirectionsApplication.getInstance().getModel().getData().getLocation() != null) {
                 ListDialog listDialog = new ListDialog();
                 FragmentManager fm = getFragmentManager();
                 listDialog.show(fm, "list_dialog");

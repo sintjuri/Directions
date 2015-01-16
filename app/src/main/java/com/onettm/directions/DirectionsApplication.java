@@ -4,6 +4,7 @@ import android.app.Application;
 import android.database.sqlite.SQLiteDatabase;
 
 import com.onettm.directions.data.DirDataHelper;
+import com.onettm.directions.data.LocationsManager;
 
 /**
  * Created by agrigory on 12/29/14.
@@ -12,6 +13,9 @@ public class DirectionsApplication extends Application {
     private static DirectionsApplication inst;
 
     private DirDataHelper dbDataHelper;
+
+    private final LocationsManager locationsManager = new LocationsManager();
+    private final Model model = new Model();
 
     public static DirectionsApplication getInstance() {
         return inst;
@@ -26,6 +30,15 @@ public class DirectionsApplication extends Application {
 
     public SQLiteDatabase getDb(){
         return dbDataHelper.getDb();
+    }
+
+
+    public LocationsManager getLocationsManager() {
+        return locationsManager;
+    }
+
+    public Model getModel() {
+        return model;
     }
 }
 

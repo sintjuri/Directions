@@ -4,9 +4,7 @@ import android.app.Activity;
 import android.app.ProgressDialog;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v4.app.DialogFragment;
-import android.support.v4.app.FragmentManager;
-import android.util.Log;
+import android.app.DialogFragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,8 +17,8 @@ import java.util.Date;
 
 
 public class ListDialog extends DialogFragment {
-
-
+    View view;
+    ListView listView;
     /**
      * The fragment's current callback object, which is notified of list item
      * clicks.
@@ -66,35 +64,25 @@ public class ListDialog extends DialogFragment {
         super.onCreate(savedInstanceState);
     }
 
-
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        final View view = inflater.inflate(R.layout.fragment_list_dialog, container, false);
-        ListView listView = (ListView) view.findViewById(R.id.item_list);
-
-
+    public void onStart() {
+        super.onStart();
         AsyncTask<ListView, Void, Object> at = new AsyncTask<ListView, Void, Object>() {
 
-            ListView listView;
             ProgressDialog progress;
 
             @Override
             protected void onPreExecute() {
                 super.onPreExecute();
                 System.err.println("TIME PREEXECUTE " + new SimpleDateFormat("HH:mm:ss.SSS").format(new Date()));
+                listView.setVisibility(View.GONE);
 
-                progress = new ProgressDialog(getActivity());
-                progress.setTitle("Loading");
-                progress.setMessage("Wait while loading...");
-                progress.show();
+                progress = ProgressDialog.show(ListDialog.this.getActivity(), "Loading", "Wait while loading...", true, false);
             }
 
             @Override
             protected Object doInBackground(ListView... listViews) {
                 Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
-                listView = listViews[0];
                 System.err.println("TIME doInBackground 1 " + new SimpleDateFormat("HH:mm:ss.SSS").format(new Date()));
                 LocationItem[] result = mCallbacks.getDestinations();
                 System.err.println("TIME doInBackground 2 " + new SimpleDateFormat("HH:mm:ss.SSS").format(new Date()));
@@ -105,6 +93,7 @@ public class ListDialog extends DialogFragment {
             @Override
             protected void onPostExecute(final Object destinations) {
                 super.onPostExecute(destinations);
+                listView.setVisibility(View.VISIBLE);
 
                 System.err.println("TIME onPostExecute 1 " + new SimpleDateFormat("HH:mm:ss.SSS").format(new Date()));
 
@@ -128,10 +117,14 @@ public class ListDialog extends DialogFragment {
             }
         };
         at.execute(listView);
+    }
 
-
-
-
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        // Inflate the layout for this fragment
+        view = inflater.inflate(R.layout.fragment_list_dialog, container, false);
+        listView = (ListView) view.findViewById(R.id.item_list);
 
         return view;
     }

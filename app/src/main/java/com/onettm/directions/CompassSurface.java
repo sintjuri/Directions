@@ -7,15 +7,12 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.util.Log;
-import android.view.SurfaceView;
 import android.view.SurfaceHolder;
-
-import java.util.concurrent.atomic.AtomicBoolean;
+import android.view.SurfaceView;
 
 public class CompassSurface extends SurfaceView implements SurfaceHolder.Callback {
 
 
-    private final Model model;
     private final CompassActivity.PlaceholderFragment context;
 
 
@@ -31,7 +28,6 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
         private static final float COMPASS_ACCEL_RATE = 0.9f;
         private static final float COMPASS_SPEED_MODIFIER = 0.26f;
 
-        private Model model;
         private Data data;
 
         /**
@@ -60,9 +56,8 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
         }
 
 
-        public CompassThread(SurfaceHolder holder, Model model) {
+        public CompassThread(SurfaceHolder holder) {
             mSurfaceHolder = holder;
-            this.model = model;
         }
 
 
@@ -244,6 +239,8 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
             // initialize a timing variable
             long maxSleepTime = (long) Math.floor(1000 / TARGET_FPS);
             // loop whilst we are told to
+            Model model = DirectionsApplication.getInstance().getModel();
+
             while (mRun) {
                 long requiredSleepTime = MINIMUM_SLEEP_TIME;
                 synchronized (model) {
@@ -318,10 +315,9 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
         return getHeight();
     }
 
-    public CompassSurface(CompassActivity.PlaceholderFragment context, Model model) {
+    public CompassSurface(CompassActivity.PlaceholderFragment context) {
         super(context.getActivity());
         this.context = context;
-        this.model = model;
 
         // register our interest in hearing about changes to our surface
         SurfaceHolder holder = getHolder();
@@ -341,7 +337,7 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
      */
     public void surfaceCreated(SurfaceHolder holder) {
 
-        animationThread = new CompassThread(holder, model);
+        animationThread = new CompassThread(holder);
         animationThread.setRunning(true);
         animationThread.start();
     }
@@ -356,7 +352,7 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
     }
 
     public void pauseAnimation() {
-        synchronized (model) {
+        synchronized (DirectionsApplication.getInstance().getModel()) {
             Log.d("PROCESS!!", "wait1");
             animationThread.setPausing(true);
             Log.d("PROCESS!!", "wait2");
@@ -364,6 +360,7 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
     }
 
     public void resumeAnimation() {
+        Model model = DirectionsApplication.getInstance().getModel();
         synchronized (model) {
             Log.d("PROCESS!!", "notify");
             animationThread.setPausing(false);

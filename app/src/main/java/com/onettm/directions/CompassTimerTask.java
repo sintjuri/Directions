@@ -11,17 +11,16 @@ public class CompassTimerTask extends TimerTask {
     private static final int MIN_DISTANCE = 30;
     private final CompassActivity context;
     private final CompassActivity.PlaceholderFragment fragment;
-    private final Model model;
 
-    public CompassTimerTask(CompassActivity context, CompassActivity.PlaceholderFragment fragment , Model model) {
+    public CompassTimerTask(CompassActivity context, CompassActivity.PlaceholderFragment fragment) {
         super();
         this.context = context;
         this.fragment = fragment;
-        this.model = model;
     }
 
     @Override
     public void run() {
+        Model model = DirectionsApplication.getInstance().getModel();
         Data data = model.getData();
         checkNewItems(data);
         checkArrive(data);
@@ -47,6 +46,8 @@ public class CompassTimerTask extends TimerTask {
     }
 
     private void checkArrive(Data data) {
+        Model model = DirectionsApplication.getInstance().getModel();
+
         if ((data.getLocation() != null) && (data.getDestinationDistance() > 0) && (data.getDestinationDistance() < MIN_DISTANCE)) {
             fragment.getHandler().post(new Runnable() {
                 @Override

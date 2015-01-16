@@ -33,7 +33,6 @@ public class SensorListener implements SensorEventListener, LocationListener {
 	private final Sensor accelSensor;
 	private boolean sensorsRegistered; // stores the event listener state
 
-    private Model model;
 
 
 	public void unregisterSensors() {
@@ -42,7 +41,8 @@ public class SensorListener implements SensorEventListener, LocationListener {
 			locationManager.removeUpdates(this);
 			sensorManager.unregisterListener(this, magSensor);
 			sensorManager.unregisterListener(this, accelSensor);
-			model.setStatus(Model.STATUS_INACTIVE);
+            Model model = DirectionsApplication.getInstance().getModel();
+            model.setStatus(Model.STATUS_INACTIVE);
 			sensorsRegistered = false; // flag the sensors as unregistered
 		}
 	}
@@ -74,8 +74,8 @@ public class SensorListener implements SensorEventListener, LocationListener {
                 Location location = locationManager
                         .getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
                 if ((location != null)&&(isLocationEnoughAccurate(location))) {
+                    Model model = DirectionsApplication.getInstance().getModel();
                     model.updateLocation(location);
-
                 }
             }
             // if GPS Enabled get lat/long using GPS Services
@@ -87,6 +87,7 @@ public class SensorListener implements SensorEventListener, LocationListener {
                 Location location = locationManager
                         .getLastKnownLocation(LocationManager.GPS_PROVIDER);
                 if ((location != null)&&(isLocationEnoughAccurate(location))) {
+                    Model model = DirectionsApplication.getInstance().getModel();
                     model.updateLocation(location);
                 }
 
@@ -111,7 +112,9 @@ public class SensorListener implements SensorEventListener, LocationListener {
 
     public void onSensorChanged(SensorEvent event) {
 		// save the data from the sensor
-		switch(event.sensor.getType()){
+        Model model = DirectionsApplication.getInstance().getModel();
+
+        switch(event.sensor.getType()){
 		case Sensor.TYPE_MAGNETIC_FIELD:
             float[] mgValues = event.values.clone();
 			model.setMagValues(mgValues);
@@ -129,6 +132,7 @@ public class SensorListener implements SensorEventListener, LocationListener {
     @Override
     public void onLocationChanged(Location location) {
         // store the new location
+        Model model = DirectionsApplication.getInstance().getModel();
         model.updateLocation(location);
     }
 
@@ -147,14 +151,14 @@ public class SensorListener implements SensorEventListener, LocationListener {
 
     }
 
-    public SensorListener(Context context, Model model) {
+    public SensorListener(Context context) {
 		// initialize variables
-		locationManager = (LocationManager)context.getSystemService(Context.LOCATION_SERVICE);
+        Model model = DirectionsApplication.getInstance().getModel();
+        locationManager = (LocationManager)context.getSystemService(Context.LOCATION_SERVICE);
 		sensorManager = (SensorManager)context.getSystemService(Context.SENSOR_SERVICE);
 		magSensor = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
 		accelSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 		sensorsRegistered = false;
-        this.model = model;
 		model.setStatus(Model.STATUS_INACTIVE);
 	}
 }
