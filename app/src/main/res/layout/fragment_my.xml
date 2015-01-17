@@ -6,11 +6,6 @@
     android:keepScreenOn="false"
     android:orientation="vertical">
 
-    <Button
-        android:id="@+id/notificationButton"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/load" />
 
     <HorizontalScrollView
         android:layout_width="fill_parent"
@@ -26,11 +21,10 @@
             android:textSize="32sp" />
     </HorizontalScrollView>
 
+    <com.onettm.directions.CompassSurface
+        android:id="@+id/surface"
+        android:layout_width="fill_parent"
+        android:layout_height="match_parent"/>
 
-    <LinearLayout
-        android:id="@+id/compassSurfaceContainer"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal" />
 
 </LinearLayout>

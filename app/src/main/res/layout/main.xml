@@ -7,10 +7,16 @@
     tools:ignore="MergeRootFrame" >
 
     <fragment android:name="com.onettm.directions.CompassActivity$PlaceholderFragment"
+        android:id="@+id/placeholderFragment"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_above="@+id/adFragment" />
-
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/buttonsFragment" />
+    <fragment android:name="com.onettm.directions.CompassActivity$ButtonsFragment"
+        android:id="@+id/buttonsFragment"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/adFragment">
+    </fragment>
     <fragment
         android:id="@+id/adFragment"
         android:name="com.onettm.directions.CompassActivity$AdFragment"

@@ -20,6 +20,7 @@
     <string name="near">Близко</string>
     <string name="middle">Средне</string>
     <string name="far">Далеко</string>
+    <string name="update">Обновить</string>
 
     <string name="North">С</string>
     <string name="NorthEast">СВ</string>
@@ -29,5 +30,6 @@
     <string name="SouthWest">ЮЗ</string>
     <string name="West">З</string>
     <string name="NorthWest">СЗ</string>
+
 
 </resources>

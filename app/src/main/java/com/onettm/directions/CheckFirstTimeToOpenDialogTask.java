@@ -13,15 +13,16 @@ public class CheckFirstTimeToOpenDialogTask extends TimerTask {
 
     @Override
     public void run() {
-        Data data = DirectionsApplication.getInstance().getModel().getData();
+        //TODO
+        /*Data data = DirectionsApplication.getInstance().getModel().getData();
         if ((data.getLocation() != null) && (data.getDestinationDistance() == 0)) {
             context.getHandler().post(new Runnable() {
                 @Override
                 public void run() {
-                    context.openListLocations();
+                    //context.openListLocations();
                 }
             });
             cancel();
-        }
+        }*/
     }
 }

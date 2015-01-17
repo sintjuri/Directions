@@ -1,19 +1,27 @@
 package com.onettm.directions;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.util.AttributeSet;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
+import com.onettm.directions.event.DataEvent;
+import com.onettm.directions.event.DataEventListener;
+
+import java.util.LinkedList;
+import java.util.List;
+
 public class CompassSurface extends SurfaceView implements SurfaceHolder.Callback {
 
 
-    private final CompassActivity.PlaceholderFragment context;
+    //private final CompassActivity.PlaceholderFragment context;
 
 
     class CompassThread extends Thread {
@@ -105,6 +113,7 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
         void update(Data data) {
             updateBearing(data);
             updateAccuracy(data);
+
         }
 
         public void doDraw(Canvas canvas, final Data data) {
@@ -116,7 +125,7 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
             canvas.drawColor(creamPaint.getColor()); // blank the screen
 
 
-            context.getHandler().post(new Runnable() {
+            /*context.getHandler().post(new Runnable() {
                 @Override
                 public void run() {
                     String textToOutput;
@@ -133,7 +142,9 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
 
                     context.getTextOutput().setText(textToOutput);
                 }
-            });
+            });*/
+
+
 
             Rect cardRect = new Rect((int) Math.floor(canvasCenterX - canvasSize / 2), (int) Math.floor(canvasCenterY - canvasSize / 2), (int) Math.floor(canvasCenterX + canvasSize / 2), (int) Math.floor(canvasCenterY + canvasSize / 2));
 
@@ -257,6 +268,7 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
                     long startTime = System.currentTimeMillis();
                     // update the animation
                     update(data);
+                    triggerEvent(data);
                     triggerDraw(data);
 
                     // work out how long to sleep for
@@ -304,6 +316,8 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
     private float compassCurrentBearing;
     private float compassSpeed;
 
+    private List<DataEventListener> dataEventListeners = new LinkedList<DataEventListener>();
+
 
     private CompassThread animationThread;
 
@@ -315,19 +329,43 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
         return getHeight();
     }
 
-    public CompassSurface(CompassActivity.PlaceholderFragment context) {
-        super(context.getActivity());
-        this.context = context;
+    public void registerDataEventListener(DataEventListener dataEventListener){
+        dataEventListeners.add(dataEventListener);
+    }
 
-        // register our interest in hearing about changes to our surface
-        SurfaceHolder holder = getHolder();
-        holder.addCallback(this);
+    public void triggerEvent(Data data){
+        DataEvent dataEvent = new DataEvent(getContext(), data);
+        for(DataEventListener dataEventListener: dataEventListeners){
+            dataEventListener.onEvent(dataEvent);
+        }
+    }
+
+    public void unregisterDataEventListeners(){
+        dataEventListeners = new LinkedList<DataEventListener>();
+    }
+
+    public CompassSurface(Context context) {
+        super(context);
+        init();
 
     }
 
-    /* Callback invoked when the surface dimensions change. */
-    public void surfaceChanged(SurfaceHolder holder, int format, int width,
-                               int height) {
+    public CompassSurface(Context context, AttributeSet attrs) {
+        super(context, attrs);
+        init();
+    }
+
+    public CompassSurface(Context context, AttributeSet attrs, int defStyle) {
+        super(context, attrs, defStyle);
+        init();
+    }
+
+
+
+    private void init(){
+        // register our interest in hearing about changes to our surface
+        SurfaceHolder holder = getHolder();
+        holder.addCallback(this);
     }
 
 
@@ -335,6 +373,7 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
      * Callback invoked when the Surface has been created and is ready to be
      * used.
      */
+    @Override
     public void surfaceCreated(SurfaceHolder holder) {
 
         animationThread = new CompassThread(holder);
@@ -342,11 +381,17 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
         animationThread.start();
     }
 
+    @Override
+    public void surfaceChanged(SurfaceHolder surfaceHolder, int i, int i2, int i3) {
+
+    }
+
     /*
      * Callback invoked when the Surface has been destroyed and must no longer
      * be touched. WARNING: after this method returns, the Surface/Canvas must
      * never be touched again!
      */
+    @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
         stopAnimation();
     }

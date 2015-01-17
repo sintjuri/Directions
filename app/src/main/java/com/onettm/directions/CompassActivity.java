@@ -20,12 +20,12 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
+import com.onettm.directions.event.TextOutputDataEventListener;
 
 import java.util.Collection;
 import java.util.Timer;
@@ -33,15 +33,20 @@ import java.util.Timer;
 
 public class CompassActivity extends Activity implements ListDialog.Callbacks {
 
+    private Handler handler;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
         loadPref();
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
-
+        handler = new Handler();
     }
 
+    public Handler getHandler() {
+        return handler;
+    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -74,17 +79,6 @@ public class CompassActivity extends Activity implements ListDialog.Callbacks {
     }
 
     @Override
-    public LocationItem[] getDestinations() {
-
-        Collection<LocationItem> result = DirectionsApplication.getInstance().getLocationsManager().getLocationItems();
-
-        LocationItem[] res;
-        res = result.toArray(new LocationItem[0]);
-
-        return res;
-    }
-
-    @Override
     public void onItemSelected(LocationItem locationItem, LocationItem[] destinations) {
 
         Model model = DirectionsApplication.getInstance().getModel();
@@ -96,6 +90,45 @@ public class CompassActivity extends Activity implements ListDialog.Callbacks {
 
     }
 
+    public static class ButtonsFragment extends Fragment {
+
+        private Button notificationButton;
+
+        
+        @Override
+        public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                                 Bundle savedInstanceState) {
+            View rootView =inflater.inflate(R.layout.buttons, container, false);
+                    notificationButton = (Button) rootView.findViewById(R.id.openListButton);
+
+            notificationButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    //surface.pauseAnimation();
+                    Log.d("PROCESS!!", "openListLocations");
+                    openListLocations();
+                    //surface.resumeAnimation();
+                }
+            });
+
+
+
+
+            return rootView;
+        }
+
+        public void openListLocations() {
+            if (DirectionsApplication.getInstance().getModel().getData().getLocation() != null) {
+                ListDialog listDialog = new ListDialog();
+                FragmentManager fm = getFragmentManager();
+                listDialog.show(fm, "list_dialog");
+            } else {
+                Toast.makeText(getActivity(), this.getString(R.string.defining), Toast.LENGTH_SHORT).show();
+            }
+        }
+
+
+    }
 
     public static class PlaceholderFragment extends Fragment {
 
@@ -103,14 +136,12 @@ public class CompassActivity extends Activity implements ListDialog.Callbacks {
         public static final int REPEATER_FIRST_TIME_OPEN_DIALOG = 1000;
 
         private CompassSurface surface;
-        private LinearLayout surfaceContainer;
-        private Button notificationButton;
-        private TextView textOutput;
+        
         private Timer compassTimer;
 
         private SensorListener compass;
         private boolean questionMarkRendered;
-        private Handler handler;
+        private TextView textOutput;
 
         public PlaceholderFragment() {
         }
@@ -167,25 +198,16 @@ public class CompassActivity extends Activity implements ListDialog.Callbacks {
                                  Bundle savedInstanceState) {
             View rootView = inflater.inflate(R.layout.fragment_my, container, false);
 
-            surfaceContainer = (LinearLayout) rootView.findViewById(R.id.compassSurfaceContainer);
-
-            notificationButton = (Button) rootView.findViewById(R.id.notificationButton);
+            surface = (CompassSurface) rootView.findViewById(R.id.surface);
             textOutput = (TextView) rootView.findViewById(R.id.textOutput);
-            notificationButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    surface.pauseAnimation();
-                    Log.d("PROCESS!!", "openListLocations");
-                    openListLocations();
-                    surface.resumeAnimation();
-                }
-            });
+            TextOutputDataEventListener textOutputDataEventListener = new TextOutputDataEventListener(textOutput);
+            surface.registerDataEventListener(textOutputDataEventListener);
 
             compass = new SensorListener(getActivity());
             Timer firstTimeOnenDialogTimer = new Timer();
             firstTimeOnenDialogTimer.schedule(new CheckFirstTimeToOpenDialogTask(this), 0, REPEATER_FIRST_TIME_OPEN_DIALOG);
 
-            handler = new Handler();
+
 
             return rootView;
         }
@@ -195,6 +217,7 @@ public class CompassActivity extends Activity implements ListDialog.Callbacks {
             // unregister from the directions to prevent undue battery drain
             compass.unregisterSensors();
             // stop the animation
+            surface.unregisterDataEventListeners();
             surface.stopAnimation();
             compassTimer.cancel();
             // call the superclass
@@ -224,35 +247,9 @@ public class CompassActivity extends Activity implements ListDialog.Callbacks {
                     .isProviderEnabled(LocationManager.GPS_PROVIDER)) {
                 showSettingsAlert();
             }
-            surface = new CompassSurface(this);
-            // add the directions
-            surfaceContainer.removeAllViews();
-            surfaceContainer.addView(surface);
 
             compassTimer = new Timer();
             compassTimer.schedule(new CompassTimerTask((CompassActivity) getActivity(), this), 0, REPEATER_COMPASS_TIMER);
-        }
-
-        public void openListLocations() {
-            if (DirectionsApplication.getInstance().getModel().getData().getLocation() != null) {
-                ListDialog listDialog = new ListDialog();
-                FragmentManager fm = getFragmentManager();
-                listDialog.show(fm, "list_dialog");
-            } else {
-                Toast.makeText(getActivity(), this.getString(R.string.defining), Toast.LENGTH_SHORT).show();
-            }
-        }
-
-        public Button getNotificationButton() {
-            return notificationButton;
-        }
-
-        public TextView getTextOutput() {
-            return textOutput;
-        }
-
-        public Handler getHandler() {
-            return handler;
         }
 
         public boolean isQuestionMarkRendered() {

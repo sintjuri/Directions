@@ -13,6 +13,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 import java.text.SimpleDateFormat;
+import java.util.Collection;
 import java.util.Date;
 
 
@@ -39,8 +40,6 @@ public class ListDialog extends DialogFragment {
          */
         public void onItemSelected(LocationItem locationItem, LocationItem[] destinations);
 
-        public LocationItem[] getDestinations();
-
     }
 
     /**
@@ -50,11 +49,6 @@ public class ListDialog extends DialogFragment {
     private static Callbacks sDummyCallbacks = new Callbacks() {
         @Override
         public void onItemSelected(LocationItem locationItem, LocationItem[] destinations) {
-        }
-
-        @Override
-        public LocationItem[] getDestinations() {
-            return null;
         }
 
     };
@@ -84,9 +78,14 @@ public class ListDialog extends DialogFragment {
             protected Object doInBackground(ListView... listViews) {
                 //Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
                 System.err.println("TIME doInBackground 1 " + new SimpleDateFormat("HH:mm:ss.SSS").format(new Date()));
-                LocationItem[] result = mCallbacks.getDestinations();
+
+                Collection<LocationItem> result = DirectionsApplication.getInstance().getLocationsManager().getLocationItems();
+
+                LocationItem[] res;
+                res = result.toArray(new LocationItem[0]);
+
                 System.err.println("TIME doInBackground 2 " + new SimpleDateFormat("HH:mm:ss.SSS").format(new Date()));
-                return result;
+                return res;
             }
 
 

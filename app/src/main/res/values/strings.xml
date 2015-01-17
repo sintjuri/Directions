@@ -31,8 +31,7 @@
     <string name="SouthWest">SW</string>
     <string name="West">W</string>
     <string name="NorthWest">NW</string>
-
-
+    <string name="update">Update</string>
 
 
 </resources>

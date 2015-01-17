@@ -32,7 +32,6 @@ public class LocationsManager {
     }
 
     private void request(){
-        //TODO change to real implementation
         System.err.println("TIME getDestinations 1 " + new SimpleDateFormat("HH:mm:ss.SSS").format(new Date()));
         Location currentLocation = DirectionsApplication.getInstance().getModel().getData().getLocation();
         System.err.println("TIME getDestinations 2 " + new SimpleDateFormat("HH:mm:ss.SSS").format(new Date()));

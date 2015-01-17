@@ -27,7 +27,8 @@ public class CompassTimerTask extends TimerTask {
     }
 
     private void checkNewItems(Data data) {
-        if (!fragment.isQuestionMarkRendered() && data.getLocation() != null && data.getDecisionPoint() != null && data.getLocation().distanceTo(data.getDecisionPoint()) > 1000) {
+        //TODO
+        /*if (!fragment.isQuestionMarkRendered() && data.getLocation() != null && data.getDecisionPoint() != null && data.getLocation().distanceTo(data.getDecisionPoint()) > 1000) {
             for (LocationItem item : context.getDestinations()) {
 
                 if (!Arrays.asList(data.getDecisionPointLocationItems()).contains(item)) {
@@ -42,11 +43,12 @@ public class CompassTimerTask extends TimerTask {
                     break;
                 }
             }
-        }
+        }*/
     }
 
     private void checkArrive(Data data) {
-        Model model = DirectionsApplication.getInstance().getModel();
+        //TODO
+        /*Model model = DirectionsApplication.getInstance().getModel();
 
         if ((data.getLocation() != null) && (data.getDestinationDistance() > 0) && (data.getDestinationDistance() < MIN_DISTANCE)) {
             fragment.getHandler().post(new Runnable() {
@@ -57,7 +59,7 @@ public class CompassTimerTask extends TimerTask {
             });
             model.setDestinationName(null);
             model.setDestinationLocation(null);
-        }
+        }*/
     }
 
 
