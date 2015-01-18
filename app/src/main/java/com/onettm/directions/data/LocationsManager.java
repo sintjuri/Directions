@@ -2,9 +2,11 @@ package com.onettm.directions.data;
 
 import android.database.Cursor;
 import android.location.Location;
+import android.os.AsyncTask;
 
 import com.onettm.directions.DirectionsApplication;
 import com.onettm.directions.LocationItem;
+import com.onettm.directions.Model;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -14,28 +16,87 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Observable;
+import java.util.Observer;
 import java.util.Set;
 
 /**
  * Created by agrigory on 1/16/15.
  */
-public class LocationsManager {
+public class LocationsManager extends Observable implements Observer {
 
-    private Collection<LocationItem> locations = Collections.emptyList();
+    private Collection<LocationItem> locations = Collections.unmodifiableCollection(Collections.<LocationItem>emptyList());
 
-    public void invalidate() {
+    private volatile boolean valid = true;
+    private Location lastLocation;
+    private volatile boolean running = false;
+    private Location decisionLocation;
+
+    public LocationsManager(Model model) {
+        model.addObserver(this);
+    }
+
+
+    public boolean isRunning() {
+        return running;
+    }
+
+    private void setValid() {
+        this.valid = true;
+    }
+
+    private void setInvalid() {
+        this.valid = false;
+    }
+
+    public synchronized void invalidate(){
+        setInvalid();
+        update(lastLocation);
+    }
+
+    public synchronized void update(Location curLoc) {
+        if (!valid)
+            if (running) return;
+        setInvalid();
+
+        AsyncTask<Location, Void, Void> at = new AsyncTask<Location, Void, Void>(){
+            @Override
+            protected void onPreExecute() {
+                super.onPreExecute();
+                running = true;
+                setChanged();
+                notifyObservers();
+            }
+
+            @Override
+            protected Void doInBackground(Location[] params) {
+                request(params[0]);
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Void o) {
+                super.onPostExecute(o);
+                setValid();
+                running = false;
+                setChanged();
+                notifyObservers();
+
+            }
+        };
+        AsyncTask res = at.execute(curLoc);
     }
 
     public Collection<LocationItem> getLocationItems(){
-        request();
         return locations;
     }
 
-    private void request(){
+    private synchronized void request(Location location){
+
         System.err.println("TIME getDestinations 1 " + new SimpleDateFormat("HH:mm:ss.SSS").format(new Date()));
-        Location currentLocation = DirectionsApplication.getInstance().getModel().getData().getLocation();
-        System.err.println("TIME getDestinations 2 " + new SimpleDateFormat("HH:mm:ss.SSS").format(new Date()));
+        Location currentLocation = location;
         DistanceComparator<LocationItem> dc = new DistanceComparator<LocationItem>(currentLocation);
+
 
         System.err.println("TIME getDestinations 3 " + new SimpleDateFormat("HH:mm:ss.SSS").format(new Date()));
         long cur_lat = (long) (currentLocation.getLatitude() * 10000000);
@@ -100,11 +161,30 @@ public class LocationsManager {
 
         result.addAll(wayNodes.values());
 
-        ArrayList<LocationItem> res= new ArrayList<LocationItem>(result);
-        Collections.sort(res, dc);
-
         System.err.println("TIME getDestinations 16 " + new SimpleDateFormat("HH:mm:ss.SSS").format(new Date()));
-        this.locations = res;
+        if (!this.locations.containsAll(result)) {
+            ArrayList<LocationItem> res= new ArrayList<LocationItem>(result);
+            Collections.sort(res, dc);
+
+            this.locations = Collections.unmodifiableCollection(res);
+            decisionLocation = currentLocation;
+            this.setChanged();
+        }
+    }
+
+    public boolean isValid() {
+        return valid;
+    }
+
+    @Override
+    public void update(Observable observable, Object data) {
+        if (!(data instanceof Location)) throw new AssertionError("expected Location object");
+        lastLocation = (Location) data;
+        if ( running ) return;
+        if(isValid())
+            if(decisionLocation != null)
+                if (lastLocation.distanceTo(decisionLocation) < 1000) return;
+        update(lastLocation);
     }
 
 

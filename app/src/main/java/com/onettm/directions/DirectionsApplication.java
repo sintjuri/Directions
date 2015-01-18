@@ -14,8 +14,8 @@ public class DirectionsApplication extends Application {
 
     private DirDataHelper dbDataHelper;
 
-    private final LocationsManager locationsManager = new LocationsManager();
     private final Model model = new Model();
+    private final LocationsManager locationsManager = new LocationsManager(model);
 
     public static DirectionsApplication getInstance() {
         return inst;

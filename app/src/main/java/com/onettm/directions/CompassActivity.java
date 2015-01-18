@@ -27,7 +27,8 @@ import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.onettm.directions.event.TextOutputDataEventListener;
 
-import java.util.Collection;
+import java.util.Observable;
+import java.util.Observer;
 import java.util.Timer;
 
 
@@ -92,16 +93,13 @@ public class CompassActivity extends Activity implements ListDialog.Callbacks {
 
     public static class ButtonsFragment extends Fragment {
 
-        private Button notificationButton;
-
-        
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
-            View rootView =inflater.inflate(R.layout.buttons, container, false);
-                    notificationButton = (Button) rootView.findViewById(R.id.openListButton);
+            View rootView = inflater.inflate(R.layout.buttons, container, false);
+            final Button listButton = (Button) rootView.findViewById(R.id.openListButton);
 
-            notificationButton.setOnClickListener(new View.OnClickListener() {
+            listButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     //surface.pauseAnimation();
@@ -111,8 +109,25 @@ public class CompassActivity extends Activity implements ListDialog.Callbacks {
                 }
             });
 
+            final Button updateButton = (Button) rootView.findViewById(R.id.updateListButton);
+            updateButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    DirectionsApplication.getInstance().getLocationsManager().invalidate();
+                }
+            });
 
-
+            Observer buttonsUpdater = new Observer() {
+                @Override
+                public void update(Observable observable, Object data) {
+                    listButton.setText(Integer.toString(DirectionsApplication.getInstance().getLocationsManager().getLocationItems().size()));
+                    listButton.invalidate();
+                    updateButton.setText(DirectionsApplication.getInstance().getLocationsManager().isRunning()?"updating...":"update");
+                    updateButton.invalidate();
+                }
+            };
+            buttonsUpdater.update(null, null);
+            DirectionsApplication.getInstance().getLocationsManager().addObserver(buttonsUpdater);
 
             return rootView;
         }
@@ -126,8 +141,6 @@ public class CompassActivity extends Activity implements ListDialog.Callbacks {
                 Toast.makeText(getActivity(), this.getString(R.string.defining), Toast.LENGTH_SHORT).show();
             }
         }
-
-
     }
 
     public static class PlaceholderFragment extends Fragment {
@@ -136,7 +149,7 @@ public class CompassActivity extends Activity implements ListDialog.Callbacks {
         public static final int REPEATER_FIRST_TIME_OPEN_DIALOG = 1000;
 
         private CompassSurface surface;
-        
+
         private Timer compassTimer;
 
         private SensorListener compass;
@@ -206,7 +219,6 @@ public class CompassActivity extends Activity implements ListDialog.Callbacks {
             compass = new SensorListener(getActivity());
             Timer firstTimeOnenDialogTimer = new Timer();
             firstTimeOnenDialogTimer.schedule(new CheckFirstTimeToOpenDialogTask(this), 0, REPEATER_FIRST_TIME_OPEN_DIALOG);
-
 
 
             return rootView;

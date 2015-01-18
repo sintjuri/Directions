@@ -1,10 +1,8 @@
 package com.onettm.directions;
 
 import android.app.Activity;
-import android.app.ProgressDialog;
-import android.os.AsyncTask;
-import android.os.Bundle;
 import android.app.DialogFragment;
+import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,9 +10,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
-import java.text.SimpleDateFormat;
 import java.util.Collection;
-import java.util.Date;
 
 
 public class ListDialog extends DialogFragment {
@@ -61,61 +57,26 @@ public class ListDialog extends DialogFragment {
     @Override
     public void onStart() {
         super.onStart();
-        AsyncTask<ListView, Void, Object> at = new AsyncTask<ListView, Void, Object>() {
+        Collection<LocationItem> result = DirectionsApplication.getInstance().getLocationsManager().getLocationItems();
 
-            ProgressDialog progress;
+        final LocationItem[] res;
+        res = result.toArray(new LocationItem[0]);
 
+        listView.setVisibility(View.VISIBLE);
+
+        listView.setAdapter(new ArrayAdapter<LocationItem>(
+                getActivity(),
+                android.R.layout.simple_list_item_activated_1,
+                android.R.id.text1, res
+        ));
+
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            protected void onPreExecute() {
-                super.onPreExecute();
-                System.err.println("TIME PREEXECUTE " + new SimpleDateFormat("HH:mm:ss.SSS").format(new Date()));
-                listView.setVisibility(View.GONE);
-
-                progress = ProgressDialog.show(ListDialog.this.getActivity(), "Loading", "Wait while loading...", true, false);
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                mCallbacks.onItemSelected((LocationItem) parent.getAdapter().getItem(position), res);
+                dismiss();
             }
-
-            @Override
-            protected Object doInBackground(ListView... listViews) {
-                //Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
-                System.err.println("TIME doInBackground 1 " + new SimpleDateFormat("HH:mm:ss.SSS").format(new Date()));
-
-                Collection<LocationItem> result = DirectionsApplication.getInstance().getLocationsManager().getLocationItems();
-
-                LocationItem[] res;
-                res = result.toArray(new LocationItem[0]);
-
-                System.err.println("TIME doInBackground 2 " + new SimpleDateFormat("HH:mm:ss.SSS").format(new Date()));
-                return res;
-            }
-
-
-            @Override
-            protected void onPostExecute(final Object destinations) {
-                super.onPostExecute(destinations);
-                listView.setVisibility(View.VISIBLE);
-
-                System.err.println("TIME onPostExecute 1 " + new SimpleDateFormat("HH:mm:ss.SSS").format(new Date()));
-
-                listView.setAdapter(new ArrayAdapter<LocationItem>(
-                        getActivity(),
-                        android.R.layout.simple_list_item_activated_1,
-                        android.R.id.text1, (LocationItem[])destinations
-                ));
-                System.err.println("TIME onPostExecute 2 " + new SimpleDateFormat("HH:mm:ss.SSS").format(new Date()));
-
-                listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                    @Override
-                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                        mCallbacks.onItemSelected((LocationItem) parent.getAdapter().getItem(position), (LocationItem[])destinations);
-                        dismiss();
-                    }
-                });
-                System.err.println("TIME onPostExecute 3 " + new SimpleDateFormat("HH:mm:ss.SSS").format(new Date()));
-
-                progress.dismiss();
-            }
-        };
-        at.execute(listView);
+        });
     }
 
     @Override

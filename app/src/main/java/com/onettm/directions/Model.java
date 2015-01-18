@@ -3,8 +3,10 @@ package com.onettm.directions;
 import android.hardware.GeomagneticField;
 import android.location.Location;
 
+import java.util.Observable;
 
-public class Model {
+
+public class Model extends Observable{
 
     public static final int STATUS_GOOD = 0;
     public static final int STATUS_INTERFERENCE = 1;
@@ -71,6 +73,8 @@ public class Model {
     public synchronized void updateLocation(Location locationCache) {
         this.currentLocation = locationCache;
         updateGeoField(locationCache);
+        setChanged();
+        if (locationCache != null) notifyObservers(locationCache);
     }
 
     public synchronized void setDestinationName(String destinationName) {
