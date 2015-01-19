@@ -264,14 +264,6 @@ public class CompassActivity extends Activity implements ListDialog.Callbacks {
             compassTimer.schedule(new CompassTimerTask((CompassActivity) getActivity(), this), 0, REPEATER_COMPASS_TIMER);
         }
 
-        public boolean isQuestionMarkRendered() {
-            return questionMarkRendered;
-        }
-
-        public void setQuestionMarkRendered(boolean questionMarkRendered) {
-            this.questionMarkRendered = questionMarkRendered;
-        }
-
     }
 
     /**
