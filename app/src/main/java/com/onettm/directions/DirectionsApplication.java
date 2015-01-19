@@ -14,6 +14,8 @@ public class DirectionsApplication extends Application {
 
     private DirDataHelper dbDataHelper;
 
+    private final Settings settings = new Settings();
+
     private final Model model = new Model();
     private final LocationsManager locationsManager = new LocationsManager(model);
 
@@ -28,7 +30,7 @@ public class DirectionsApplication extends Application {
         dbDataHelper = new DirDataHelper();
     }
 
-    public SQLiteDatabase getDb(){
+    public SQLiteDatabase getDb() {
         return dbDataHelper.getDb();
     }
 
@@ -39,6 +41,28 @@ public class DirectionsApplication extends Application {
 
     public Model getModel() {
         return model;
+    }
+
+    public Settings getSettings() {
+        return settings;
+    }
+
+    public static class Settings {
+        private final int decisionExpirationDistance = 1000; //meters
+        private final int searchRadius = 5000; //meters
+        private final int minDistanceToTarget = 30; //meters
+
+        public int getDecisionExpirationDistance() {
+            return decisionExpirationDistance;
+        }
+
+        public int getSearchRadius() {
+            return searchRadius;
+        }
+
+        public int getMinDistanceToTarget() {
+            return minDistanceToTarget;
+        }
     }
 }
 

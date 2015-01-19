@@ -26,6 +26,7 @@ import java.util.Set;
 public class LocationsManager extends Observable implements Observer {
 
     private Collection<LocationItem> locations = Collections.unmodifiableCollection(Collections.<LocationItem>emptyList());
+    private final com.onettm.directions.DirectionsApplication.Settings settings = DirectionsApplication.getInstance().getSettings();
 
     private volatile boolean valid = true;
     private Location lastLocation;
@@ -93,7 +94,6 @@ public class LocationsManager extends Observable implements Observer {
 
     private synchronized void request(Location location){
 
-        System.err.println("TIME getDestinations 1 " + new SimpleDateFormat("HH:mm:ss.SSS").format(new Date()));
         Location currentLocation = location;
         DistanceComparator<LocationItem> dc = new DistanceComparator<LocationItem>(currentLocation);
 
@@ -101,7 +101,6 @@ public class LocationsManager extends Observable implements Observer {
         System.err.println("TIME getDestinations 3 " + new SimpleDateFormat("HH:mm:ss.SSS").format(new Date()));
         long cur_lat = (long) (currentLocation.getLatitude() * 10000000);
         long cur_lon = (long) (currentLocation.getLongitude() * 10000000);
-        System.err.println("TIME getDestinations 4 " + new SimpleDateFormat("HH:mm:ss.SSS").format(new Date()));
         Cursor c = DirectionsApplication.getInstance().getDb().rawQuery(String.format("select tag.v, node.lat, node.lon from node \n" +
                 "join tag_node on node.id=tag_node.node\n" +
                 "join tag on tag.id=tag_node.tag\n" +
@@ -109,11 +108,8 @@ public class LocationsManager extends Observable implements Observer {
                 "and node.lat > %d - 400000 and node.lat < %d + 400000\n" +
                 "and node.lon > %d - 700000 and node.lon < %d + 700000", cur_lat, cur_lat, cur_lon, cur_lon), null);
 
-        System.err.println("TIME getDestinations 5 " + new SimpleDateFormat("HH:mm:ss.SSS").format(new Date()));
         c.moveToFirst();
-        System.err.println("TIME getDestinations 6 " + new SimpleDateFormat("HH:mm:ss.SSS").format(new Date()));
         Set<LocationItem> result = new HashSet<LocationItem>();
-        System.err.println("TIME getDestinations 7 " + new SimpleDateFormat("HH:mm:ss.SSS").format(new Date()));
         while (c.moveToNext()) {
             String name = c.getString(0);
             double lat = c.getDouble(1) / 10000000;
@@ -135,11 +131,8 @@ public class LocationsManager extends Observable implements Observer {
                 "and node.lat > %d - 400000 and node.lat < %d + 400000\n" +
                 "and node.lon > %d - 700000 and node.lon < %d + 700000", cur_lat, cur_lat, cur_lon, cur_lon), null);
 
-        System.err.println("TIME getDestinations 10 " + new SimpleDateFormat("HH:mm:ss.SSS").format(new Date()));
         c2.moveToFirst();
-        System.err.println("TIME getDestinations 11 " + new SimpleDateFormat("HH:mm:ss.SSS").format(new Date()));
         Map<Integer, LocationItem> wayNodes = new HashMap<Integer, LocationItem>();
-        System.err.println("TIME getDestinations 12 " + new SimpleDateFormat("HH:mm:ss.SSS").format(new Date()));
 
         while (c2.moveToNext()) {
             String name = c2.getString(0);
@@ -155,13 +148,10 @@ public class LocationsManager extends Observable implements Observer {
                 if (dc.compare(existingItem, newItem) < 0) continue;
             } else wayNodes.put(c2.getInt(3), newItem);
         }
-        System.err.println("TIME getDestinations 13 " + new SimpleDateFormat("HH:mm:ss.SSS").format(new Date()));
         c2.close();
-        System.err.println("TIME getDestinations 14 " + new SimpleDateFormat("HH:mm:ss.SSS").format(new Date()));
 
         result.addAll(wayNodes.values());
 
-        System.err.println("TIME getDestinations 16 " + new SimpleDateFormat("HH:mm:ss.SSS").format(new Date()));
         if (!this.locations.containsAll(result)) {
             ArrayList<LocationItem> res= new ArrayList<LocationItem>(result);
             Collections.sort(res, dc);
@@ -178,12 +168,12 @@ public class LocationsManager extends Observable implements Observer {
 
     @Override
     public void update(Observable observable, Object data) {
-        if (!(data instanceof Location)) throw new AssertionError("expected Location object");
+        if (!(data instanceof Location)) throw new AssertionError("Location object expected");
         lastLocation = (Location) data;
         if ( running ) return;
         if(isValid())
             if(decisionLocation != null)
-                if (lastLocation.distanceTo(decisionLocation) < 1000) return;
+                if (lastLocation.distanceTo(decisionLocation) < settings.getDecisionExpirationDistance()) return;
         update(lastLocation);
     }
 
@@ -209,5 +199,29 @@ public class LocationsManager extends Observable implements Observer {
             float d2 = currentLoc.distanceTo(l2.getLocation());
             return Float.compare(d, d2);
         }
+    }
+
+    private float getLatitudeDegreesByDistance(Location location, int meters){
+        double lo = Math.floor(location.getLatitude());
+        double hi = Math.ceil(location.getLatitude());
+        Location loLoc = new Location("dummy");
+        loLoc.setLatitude(lo);
+        Location hiLoc = new Location("dummy");
+        hiLoc.setLatitude(hi);
+        float d = loLoc.distanceTo(hiLoc);
+        float k = meters*(1/d);
+        return k;
+    }
+
+    private float getLongitudeDegreesByDistance(Location location, int meters){
+        double lo = Math.floor(location.getLongitude());
+        double hi = Math.ceil(location.getLongitude());
+        Location loLoc = new Location("dummy");
+        loLoc.setLongitude(lo);
+        Location hiLoc = new Location("dummy");
+        hiLoc.setLongitude(hi);
+        float d = loLoc.distanceTo(hiLoc);
+        float k = meters*(1/d);
+        return k;
     }
 }
