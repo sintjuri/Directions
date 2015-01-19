@@ -45,7 +45,7 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
         private final SurfaceHolder mSurfaceHolder;
         private volatile boolean mRun;
 
-        private Boolean flag = new Boolean(false);
+        private boolean flag = false;
 
         /**
          * Used to signal the thread whether it should be running or not.
@@ -59,9 +59,9 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
             mRun = b;
         }
 
-        public void setPausing(boolean b) {
+        /*public void setPausing(boolean b) {
             flag = b;
-        }
+        }*/
 
 
         public CompassThread(SurfaceHolder holder) {
@@ -253,7 +253,7 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
             Model model = DirectionsApplication.getInstance().getModel();
 
             while (mRun) {
-                long requiredSleepTime = MINIMUM_SLEEP_TIME;
+                long requiredSleepTime;
                 synchronized (model) {
                     if (flag) {
                         try {
@@ -396,7 +396,7 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
         stopAnimation();
     }
 
-    public void pauseAnimation() {
+    /*public void pauseAnimation() {
         synchronized (DirectionsApplication.getInstance().getModel()) {
             Log.d("PROCESS!!", "wait1");
             animationThread.setPausing(true);
@@ -411,7 +411,7 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
             animationThread.setPausing(false);
             model.notify();
         }
-    }
+    }*/
 
     public void stopAnimation() {
         // we have to tell thread to shut down & wait for it to finish, or else
