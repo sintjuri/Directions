@@ -3,6 +3,7 @@ package com.onettm.directions.data;
 import android.database.Cursor;
 import android.location.Location;
 import android.os.AsyncTask;
+import android.os.Process;
 import android.util.SparseArray;
 
 import com.onettm.directions.DirectionsApplication;
@@ -80,16 +81,22 @@ public class LocationsManager extends Observable implements Observer {
 
             @Override
             protected Void doInBackground(Location[] params) {
-                publishProgress();
-                Set<LocationItem> result = request(params[0]);
-                if (!locations.containsAll(result)) {
-                    ArrayList<LocationItem> res = new ArrayList<LocationItem>(result);
-                    DistanceComparator<LocationItem> dc = new DistanceComparator<LocationItem>(params[0]);
-                    Collections.sort(res, dc);
+                int priority = android.os.Process.getThreadPriority(Process.myTid());
+                try {
+                    Process.setThreadPriority(priority > 1 ? priority - 1 : 1);
+                    publishProgress();
+                    Set<LocationItem> result = request(params[0]);
+                    if (!locations.containsAll(result)) {
+                        ArrayList<LocationItem> res = new ArrayList<LocationItem>(result);
+                        DistanceComparator<LocationItem> dc = new DistanceComparator<LocationItem>(params[0]);
+                        Collections.sort(res, dc);
 
-                    locations = Collections.unmodifiableCollection(res);
-                    decisionLocation = params[0];
-                    setChanged();
+                        locations = Collections.unmodifiableCollection(res);
+                        decisionLocation = params[0];
+                        setChanged();
+                    }
+                } finally {
+                    Process.setThreadPriority(priority);
                 }
                 return null;
             }
