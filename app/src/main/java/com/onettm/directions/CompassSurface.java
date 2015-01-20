@@ -12,10 +12,9 @@ import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
+import java.util.Date;
+
 public class CompassSurface extends SurfaceView implements SurfaceHolder.Callback {
-
-
-    //private final CompassActivity.PlaceholderFragment context;
 
 
     /**
@@ -111,23 +110,6 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
         }
     }
 
-    /*public void pauseAnimation() {
-        synchronized (DirectionsApplication.getInstance().getModel()) {
-            Log.d("PROCESS!!", "wait1");
-            animationThread.setPausing(true);
-            Log.d("PROCESS!!", "wait2");
-        }
-    }
-
-    public void resumeAnimation() {
-        Model model = DirectionsApplication.getInstance().getModel();
-        synchronized (model) {
-            Log.d("PROCESS!!", "notify");
-            animationThread.setPausing(false);
-            model.notify();
-        }
-    }*/
-
     class CompassThread extends Thread {
 
         private static final int TARGET_FPS = 30;
@@ -147,15 +129,10 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
         private Data data;
         private volatile boolean mRun;
 
-        private boolean flag = false;
-
         public CompassThread(SurfaceHolder holder) {
+            super("AnimationThread");
             mSurfaceHolder = holder;
         }
-
-        /*public void setPausing(boolean b) {
-            flag = b;
-        }*/
 
         /**
          * Used to signal the thread whether it should be running or not.
@@ -170,43 +147,41 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
         }
 
         private void updateBearing(Data data) {
-            synchronized (mSurfaceHolder) {
 
-                float newBearing = data.getPositiveBearing();
-                if (Math.abs(compassBearingTo - newBearing) > REQUIRED_BEARING_CHANGE) {
+            float newBearing = data.getPositiveBearing();
+            if (Math.abs(compassBearingTo - newBearing) > REQUIRED_BEARING_CHANGE) {
+                compassBearingTo = newBearing;
+                repeatedBearingCount = 0;
+            } else {
+                repeatedBearingCount++;
+                if (repeatedBearingCount > REQUIRED_BEARING_REPEAT) {
                     compassBearingTo = newBearing;
                     repeatedBearingCount = 0;
-                } else {
-                    repeatedBearingCount++;
-                    if (repeatedBearingCount > REQUIRED_BEARING_REPEAT) {
-                        compassBearingTo = newBearing;
-                        repeatedBearingCount = 0;
-                    }
                 }
-                if (compassCurrentBearing < 90 && compassBearingTo > 270) {
-                    compassBearingTo -= 360;
-                }
-                if (compassCurrentBearing > 270 && compassBearingTo < 90) {
-                    compassBearingTo += 360;
-                }
-                float distance = compassBearingTo - compassCurrentBearing;
-                float targetSpeed = distance * COMPASS_SPEED_MODIFIER;
-                if (targetSpeed > compassSpeed) {
-                    compassSpeed += COMPASS_ACCEL_RATE;
-                }
-                if (targetSpeed < compassSpeed) {
-                    compassSpeed -= COMPASS_ACCEL_RATE;
-                }
-                // stop the directions speed dropping too low
-                compassCurrentBearing += compassSpeed;
+            }
+            if (compassCurrentBearing < 90 && compassBearingTo > 270) {
+                compassBearingTo -= 360;
+            }
+            if (compassCurrentBearing > 270 && compassBearingTo < 90) {
+                compassBearingTo += 360;
+            }
+            float distance = compassBearingTo - compassCurrentBearing;
+            float targetSpeed = distance * COMPASS_SPEED_MODIFIER;
+            if (targetSpeed > compassSpeed) {
+                compassSpeed += COMPASS_ACCEL_RATE;
+            }
+            if (targetSpeed < compassSpeed) {
+                compassSpeed -= COMPASS_ACCEL_RATE;
+            }
+            // stop the directions speed dropping too low
+            compassCurrentBearing += compassSpeed;
 
-                // adjust the compassBearingTo for a complete circle
-                if (compassCurrentBearing >= 360) {
-                    compassCurrentBearing -= 360;
-                }
-                if (compassCurrentBearing < 0) {
-                    compassCurrentBearing += 360;
-                }
+            // adjust the compassBearingTo for a complete circle
+            if (compassCurrentBearing >= 360) {
+                compassCurrentBearing -= 360;
+            }
+            if (compassCurrentBearing < 0) {
+                compassCurrentBearing += 360;
             }
         }
 
@@ -220,31 +195,7 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
             float canvasSize = Math.min(getCanvasWidth(), getCanvasHeight());
             float canvasCenterX = getCanvasWidth() / 2;
             float canvasCenterY = getCanvasHeight() / 2;
-
-
             canvas.drawColor(creamPaint.getColor()); // blank the screen
-
-
-            /*context.getHandler().post(new Runnable() {
-                @Override
-                public void run() {
-                    String textToOutput;
-
-                    if (data.getLocation() != null) {
-                        if (data.getDestinationDistance() > 0) {
-                            textToOutput = getContext().getString(R.string.distance, data.getDestinationName(), data.getDestinationDistance());
-                        } else {
-                            textToOutput = getContext().getString(R.string.please_select);
-                        }
-                    } else {
-                        textToOutput = getContext().getString(R.string.defining);
-                    }
-
-                    context.getTextOutput().setText(textToOutput);
-                }
-            });*/
-
-
             Rect cardRect = new Rect((int) Math.floor(canvasCenterX - canvasSize / 2), (int) Math.floor(canvasCenterY - canvasSize / 2), (int) Math.floor(canvasCenterX + canvasSize / 2), (int) Math.floor(canvasCenterY + canvasSize / 2));
 
             if (displayedStatus == Model.STATUS_INTERFERENCE) {
@@ -259,7 +210,6 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
         }
 
         void initDrawing() {
-//*            synchronized (mSurfaceHolder) {
             cardImage = BitmapFactory.decodeResource(getResources(), R.drawable.card);
             pointerImage = BitmapFactory.decodeResource(getResources(), R.drawable.pointer);
             interferenceImage = BitmapFactory.decodeResource(getResources(), R.drawable.interference);
@@ -279,112 +229,61 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
             Paint bluePaint = new Paint();
             bluePaint.setARGB(255, 0, 94, 155);
 
-//*            }
         }
 
         private void updateAccuracy(Data data) {
-            synchronized (mSurfaceHolder) {
-                int status = data.getStatus();
-                // check in case the status is already set to an event
-                if (displayedStatus == STATUS_NO_EVENT) {
-                    // only display statuses we can handle
-                    if (status == Model.STATUS_INTERFERENCE) {
-                        displayedStatus = status;
-                    }
+            int status = data.getStatus();
+            if (displayedStatus == STATUS_NO_EVENT) {
+                if (status == Model.STATUS_INTERFERENCE) {
+                    displayedStatus = status;
                 }
             }
         }
 
 
         void triggerDraw(Data data) {
-//*            synchronized (mSurfaceHolder) {
-            //Log.d("callback", "triggerDraw");
             Canvas canvas = null;
             try {
-            /*SurfaceHolder.Callback callback = new SurfaceHolder.Callback() {
-                public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-                    Log.d("callback", "surfaceChanged");
-                }
-
-                public void surfaceCreated(SurfaceHolder holder) {
-                    Log.d("callback", "surfaceCreated");
-                }
-
-                public void surfaceDestroyed(SurfaceHolder holder) {
-                    Log.d("callback", "surfaceDestroyed");
-                }
-            };
-
-            this.getHolder().addCallback(callback);*/
-                //Log.d("callback", "beforeLock");
                 canvas = mSurfaceHolder.lockCanvas();
-                //Log.d("callback", "afterLock");
                 if (canvas != null) {
-                    //Log.d("callback", "beforeDraw");
                     this.doDraw(canvas, data);
-                    //Log.d("callback", "afterDraw");
                 }
 
             } finally {
                 if (canvas != null) {
-                    //Log.d("callback", "beforeUnlock");
                     mSurfaceHolder.unlockCanvasAndPost(canvas);
-                    //Log.d("callback", "afterUnlock");
                 }
             }
-//*            }
         }
 
         public void run() {
-
-
-            // set the directions position to prevent spinning
-//*            compassCurrentBearing = directions.getPositiveBearing(true);
-
-            // reset the status
-//*            displayedStatus = STATUS_NO_EVENT;
-
             initDrawing();
-
-            // initialize a timing variable
             long maxSleepTime = (long) Math.floor(1000 / TARGET_FPS);
-            // loop whilst we are told to
             Model model = DirectionsApplication.getInstance().getModel();
 
             while (mRun) {
                 long requiredSleepTime;
                 synchronized (model) {
-                    try {
-                        while (flag) {
-                            model.wait(1000);
-                        }
-                    } catch (InterruptedException e) {
-                        Log.d("CompassSurface", e.getMessage());
-                    }
                     data = model.getData();
-//*                synchronized (mSurfaceHolder) {
-                    // record the start time
                     long startTime = System.currentTimeMillis();
-                    // update the animation
                     update(data);
                     triggerDraw(data);
 
-                    // work out how long to sleep for
                     long finishTime = System.currentTimeMillis();
                     requiredSleepTime = maxSleepTime - (finishTime - startTime);
-                    // check if the sleep time was too low
                     if (requiredSleepTime < MINIMUM_SLEEP_TIME) {
                         requiredSleepTime = MINIMUM_SLEEP_TIME;
                     }
-                    // try to sleep for this time
+                    long targetTime = (System.currentTimeMillis() + requiredSleepTime);
+
                     try {
-                        Thread.sleep(requiredSleepTime);
+                        while (System.currentTimeMillis()  < targetTime) {
+                            model.wait(requiredSleepTime);
+                        }
                     } catch (InterruptedException e) {
-                        Log.d("CompassSurface", e.getMessage());
+                        Thread.currentThread().interrupt();
                     }
                 }
-
-
             }
         }
     }
