@@ -30,6 +30,8 @@
     <string name="SouthWest">ЮЗ</string>
     <string name="West">З</string>
     <string name="NorthWest">СЗ</string>
+    <string name="show_list">Показать %1$s</string>
+    <string name="updating">Обновление</string>
 
 
 </resources>

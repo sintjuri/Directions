@@ -22,6 +22,9 @@
     <string name="near">Near</string>
     <string name="middle">Middle</string>
     <string name="far">Far</string>
+    <string name="update">Update</string>
+    <string name="show_list">Show %1$s</string>
+
 
     <string name="North">N</string>
     <string name="NorthEast">NE</string>
@@ -31,7 +34,7 @@
     <string name="SouthWest">SW</string>
     <string name="West">W</string>
     <string name="NorthWest">NW</string>
-    <string name="update">Update</string>
+    <string name="updating">Updating</string>
 
 
 </resources>

@@ -12,12 +12,6 @@ import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
-import com.onettm.directions.event.DataEvent;
-import com.onettm.directions.event.DataEventListener;
-
-import java.util.LinkedList;
-import java.util.List;
-
 public class CompassSurface extends SurfaceView implements SurfaceHolder.Callback {
 
 
@@ -268,7 +262,6 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
                     long startTime = System.currentTimeMillis();
                     // update the animation
                     update(data);
-                    triggerEvent(data);
                     triggerDraw(data);
 
                     // work out how long to sleep for
@@ -316,9 +309,6 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
     private float compassCurrentBearing;
     private float compassSpeed;
 
-    private List<DataEventListener> dataEventListeners = new LinkedList<DataEventListener>();
-
-
     private CompassThread animationThread;
 
     float getCanvasWidth() {
@@ -327,21 +317,6 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
 
     float getCanvasHeight() {
         return getHeight();
-    }
-
-    public void registerDataEventListener(DataEventListener dataEventListener){
-        dataEventListeners.add(dataEventListener);
-    }
-
-    public void triggerEvent(Data data){
-        DataEvent dataEvent = new DataEvent(getContext(), data);
-        for(DataEventListener dataEventListener: dataEventListeners){
-            dataEventListener.onEvent(dataEvent);
-        }
-    }
-
-    public void unregisterDataEventListeners(){
-        dataEventListeners = new LinkedList<DataEventListener>();
     }
 
     public CompassSurface(Context context) {
