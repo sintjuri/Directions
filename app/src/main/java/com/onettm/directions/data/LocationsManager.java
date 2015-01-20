@@ -3,6 +3,7 @@ package com.onettm.directions.data;
 import android.database.Cursor;
 import android.location.Location;
 import android.os.AsyncTask;
+import android.util.SparseArray;
 
 import com.onettm.directions.DirectionsApplication;
 import com.onettm.directions.LocationItem;
@@ -11,15 +12,14 @@ import com.onettm.directions.Model;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.Set;
 
 /**
  * Created by agrigory on 1/16/15.
+ * Search objects
  */
 public class LocationsManager extends Observable implements Observer {
 
@@ -28,16 +28,18 @@ public class LocationsManager extends Observable implements Observer {
 
     private volatile boolean valid = true;
     private Location lastLocation;
-    private volatile boolean running = false;
     private Location decisionLocation;
+    private volatile AsyncTask searchTask = null;
 
     public LocationsManager(Model model) {
         model.addObserver(this);
     }
 
 
-    public boolean isRunning() {
-        return running;
+    public synchronized boolean isRunning() {
+        if (searchTask != null)
+            if (searchTask.getStatus() != AsyncTask.Status.FINISHED) return true;
+        return false;
     }
 
     private void setValid() {
@@ -55,21 +57,20 @@ public class LocationsManager extends Observable implements Observer {
 
     public synchronized void update(Location curLoc) {
         if (!valid)
-            if (running) return;
+            if (isRunning()) return;
         setInvalid();
 
         AsyncTask<Location, Void, Void> at = new AsyncTask<Location, Void, Void>() {
             @Override
             protected void onPreExecute() {
                 super.onPreExecute();
-                running = true;
                 setChanged();
                 notifyObservers();
             }
 
             @Override
             protected Void doInBackground(Location[] params) {
-                request(params[0]);
+                request(params[0], this);
                 return null;
             }
 
@@ -77,29 +78,34 @@ public class LocationsManager extends Observable implements Observer {
             protected void onPostExecute(Void o) {
                 super.onPostExecute(o);
                 setValid();
-                running = false;
                 setChanged();
                 notifyObservers();
 
             }
+
+            @Override
+            protected void onCancelled() {
+                super.onCancelled();
+                setChanged();
+                notifyObservers();
+            }
         };
-        AsyncTask res = at.execute(curLoc);
+        searchTask = at.execute(curLoc);
     }
 
     public Collection<LocationItem> getLocationItems() {
         return locations;
     }
 
-    private synchronized void request(Location location) {
+    private synchronized void request(Location location, AsyncTask<Location, Void, Void> asyncTask) {
 
-        Location currentLocation = location;
-        DistanceComparator<LocationItem> dc = new DistanceComparator<LocationItem>(currentLocation);
+        DistanceComparator<LocationItem> dc = new DistanceComparator<LocationItem>(location);
 
-        float longitudeSide = getLongitudeDegreesByDistance(currentLocation, DirectionsApplication.getInstance().getSettings().getSearchRadius()) * 10000000;
-        float latitudeSide = getLatitudeDegreesByDistance(currentLocation, DirectionsApplication.getInstance().getSettings().getSearchRadius()) * 10000000;
+        long longitudeSide = Math.round(getLongitudeDegreesByDistance(location, DirectionsApplication.getInstance().getSettings().getSearchRadius()) * 10000000);
+        long latitudeSide = Math.round(getLatitudeDegreesByDistance(location, DirectionsApplication.getInstance().getSettings().getSearchRadius()) * 10000000);
 
-        long cur_lat = (long) (currentLocation.getLatitude() * 10000000);
-        long cur_lon = (long) (currentLocation.getLongitude() * 10000000);
+        long cur_lat = (long) (location.getLatitude() * 10000000);
+        long cur_lon = (long) (location.getLongitude() * 10000000);
         Cursor c = DirectionsApplication.getInstance().getDb().rawQuery(String.format("select tag.v, node.lat, node.lon from node \n" +
                 "join tag_node on node.id=tag_node.node\n" +
                 "join tag on tag.id=tag_node.tag\n" +
@@ -110,13 +116,14 @@ public class LocationsManager extends Observable implements Observer {
         c.moveToFirst();
         Set<LocationItem> result = new HashSet<LocationItem>();
         while (c.moveToNext()) {
+            if (asyncTask.isCancelled()) return;
             String name = c.getString(0);
             double lat = c.getDouble(1) / 10000000;
             double lon = c.getDouble(2) / 10000000;
             Location pv = new Location("");
             pv.setLatitude(lat);
             pv.setLongitude(lon);
-            result.add(new LocationItem(pv, name, currentLocation));
+            result.add(new LocationItem(pv, name, location));
         }
         c.close();
 
@@ -129,9 +136,10 @@ public class LocationsManager extends Observable implements Observer {
                 "and node.lon > %d and node.lon < %d ", cur_lat - latitudeSide, cur_lat + latitudeSide, cur_lon - longitudeSide, cur_lon + longitudeSide), null);
 
         c2.moveToFirst();
-        Map<Integer, LocationItem> wayNodes = new HashMap<Integer, LocationItem>();
+        SparseArray<LocationItem> wayNodes = new SparseArray<LocationItem>();
 
         while (c2.moveToNext()) {
+            if (asyncTask.isCancelled()) return;
             String name = c2.getString(0);
             double lat = c2.getDouble(1) / 10000000;
             double lon = c2.getDouble(2) / 10000000;
@@ -139,22 +147,30 @@ public class LocationsManager extends Observable implements Observer {
             Location pv = new Location("");
             pv.setLatitude(lat);
             pv.setLongitude(lon);
-            LocationItem newItem = new LocationItem(pv, name, currentLocation);
+            LocationItem newItem = new LocationItem(pv, name, location);
             LocationItem existingItem = wayNodes.get(way);
             if (existingItem != null) {
                 if (dc.compare(existingItem, newItem) < 0) continue;
-            } else wayNodes.put(c2.getInt(3), newItem);
+            }
+            wayNodes.put(c2.getInt(3), newItem);
         }
         c2.close();
 
-        result.addAll(wayNodes.values());
+        int key;
+        for(int i = 0; i < wayNodes.size(); i++) {
+            if (asyncTask.isCancelled()) return;
+            key = wayNodes.keyAt(i);
+            LocationItem obj = wayNodes.get(key);
+            result.add(obj);
+        }
 
         if (!this.locations.containsAll(result)) {
+            if (asyncTask.isCancelled()) return;
             ArrayList<LocationItem> res = new ArrayList<LocationItem>(result);
             Collections.sort(res, dc);
 
             this.locations = Collections.unmodifiableCollection(res);
-            decisionLocation = currentLocation;
+            decisionLocation = location;
             this.setChanged();
         }
     }
@@ -167,7 +183,7 @@ public class LocationsManager extends Observable implements Observer {
     public void update(Observable observable, Object data) {
         if (!(data instanceof Location)) throw new AssertionError("Location object expected");
         lastLocation = (Location) data;
-        if (running) return;
+        if (isRunning()) return;
         if (isValid())
             if (decisionLocation != null)
                 if (lastLocation.distanceTo(decisionLocation) < settings.getDecisionExpirationDistance())
@@ -207,8 +223,7 @@ public class LocationsManager extends Observable implements Observer {
         Location hiLoc = new Location("dummy");
         hiLoc.setLatitude(hi);
         float d = loLoc.distanceTo(hiLoc);
-        float k = meters * (1 / d);
-        return k;
+        return meters * (1 / d);
     }
 
     private float getLongitudeDegreesByDistance(Location location, int meters) {
@@ -219,7 +234,6 @@ public class LocationsManager extends Observable implements Observer {
         Location hiLoc = new Location("dummy");
         hiLoc.setLongitude(hi);
         float d = loLoc.distanceTo(hiLoc);
-        float k = meters * (1 / d);
-        return k;
+        return meters * (1 / d);
     }
 }
