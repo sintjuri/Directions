@@ -18,6 +18,116 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
     //private final CompassActivity.PlaceholderFragment context;
 
 
+    /**
+     * constants *
+     */
+
+    private static final int STATUS_NO_EVENT = -1;
+    // images
+    private Bitmap cardImage;
+    private Bitmap pointerImage;
+    private Bitmap interferenceImage;
+    // paint
+    private Paint imagePaint;
+    private Paint creamPaint;
+    private int displayedStatus;
+    private float compassBearingTo;
+    private int repeatedBearingCount;
+    private float compassCurrentBearing;
+    private float compassSpeed;
+    private CompassThread animationThread;
+
+    public CompassSurface(Context context) {
+        super(context);
+        init();
+
+    }
+
+    public CompassSurface(Context context, AttributeSet attrs) {
+        super(context, attrs);
+        init();
+    }
+
+    public CompassSurface(Context context, AttributeSet attrs, int defStyle) {
+        super(context, attrs, defStyle);
+        init();
+    }
+
+    float getCanvasWidth() {
+        return getWidth();
+    }
+
+    float getCanvasHeight() {
+        return getHeight();
+    }
+
+    private void init() {
+        // register our interest in hearing about changes to our surface
+        SurfaceHolder holder = getHolder();
+        holder.addCallback(this);
+    }
+
+    /*
+     * Callback invoked when the Surface has been created and is ready to be
+     * used.
+     */
+    @Override
+    public void surfaceCreated(SurfaceHolder holder) {
+
+        animationThread = new CompassThread(holder);
+        animationThread.setRunning(true);
+        animationThread.start();
+    }
+
+    @Override
+    public void surfaceChanged(SurfaceHolder surfaceHolder, int i, int i2, int i3) {
+
+    }
+
+    /*
+     * Callback invoked when the Surface has been destroyed and must no longer
+     * be touched. WARNING: after this method returns, the Surface/Canvas must
+     * never be touched again!
+     */
+    @Override
+    public void surfaceDestroyed(SurfaceHolder holder) {
+        stopAnimation();
+    }
+
+    public void stopAnimation() {
+        // we have to tell thread to shut down & wait for it to finish, or else
+        // it might touch the Surface after we return and explode
+        boolean retry = true;
+        if (animationThread != null) {
+            animationThread.setRunning(false);
+            while (retry) {
+                try {
+                    animationThread.join();
+                    retry = false;
+                } catch (InterruptedException e) {
+                    Log.d("CompassSurface", e.getMessage());
+                }
+            }
+        }
+    }
+
+    /*public void pauseAnimation() {
+        synchronized (DirectionsApplication.getInstance().getModel()) {
+            Log.d("PROCESS!!", "wait1");
+            animationThread.setPausing(true);
+            Log.d("PROCESS!!", "wait2");
+        }
+    }
+
+    public void resumeAnimation() {
+        Model model = DirectionsApplication.getInstance().getModel();
+        synchronized (model) {
+            Log.d("PROCESS!!", "notify");
+            animationThread.setPausing(false);
+            model.notify();
+        }
+    }*/
+
     class CompassThread extends Thread {
 
         private static final int TARGET_FPS = 30;
@@ -29,17 +139,23 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
 
         private static final float COMPASS_ACCEL_RATE = 0.9f;
         private static final float COMPASS_SPEED_MODIFIER = 0.26f;
-
-        private Data data;
-
         /**
          * variables *
          */
 
         private final SurfaceHolder mSurfaceHolder;
+        private Data data;
         private volatile boolean mRun;
 
         private boolean flag = false;
+
+        public CompassThread(SurfaceHolder holder) {
+            mSurfaceHolder = holder;
+        }
+
+        /*public void setPausing(boolean b) {
+            flag = b;
+        }*/
 
         /**
          * Used to signal the thread whether it should be running or not.
@@ -52,16 +168,6 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
         public void setRunning(boolean b) {
             mRun = b;
         }
-
-        /*public void setPausing(boolean b) {
-            flag = b;
-        }*/
-
-
-        public CompassThread(SurfaceHolder holder) {
-            mSurfaceHolder = holder;
-        }
-
 
         private void updateBearing(Data data) {
             synchronized (mSurfaceHolder) {
@@ -137,7 +243,6 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
                     context.getTextOutput().setText(textToOutput);
                 }
             });*/
-
 
 
             Rect cardRect = new Rect((int) Math.floor(canvasCenterX - canvasSize / 2), (int) Math.floor(canvasCenterY - canvasSize / 2), (int) Math.floor(canvasCenterX + canvasSize / 2), (int) Math.floor(canvasCenterY + canvasSize / 2));
@@ -249,12 +354,12 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
             while (mRun) {
                 long requiredSleepTime;
                 synchronized (model) {
-                    if (flag) {
-                        try {
-                            model.wait();
-                        } catch (InterruptedException e) {
-                            Log.d("CompassSurface", e.getMessage());
+                    try {
+                        while (flag) {
+                            model.wait(1000);
                         }
+                    } catch (InterruptedException e) {
+                        Log.d("CompassSurface", e.getMessage());
                     }
                     data = model.getData();
 //*                synchronized (mSurfaceHolder) {
@@ -280,127 +385,6 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
                 }
 
 
-            }
-        }
-    }
-
-    /**
-     * constants *
-     */
-
-    private static final int STATUS_NO_EVENT = -1;
-
-    // images
-    private Bitmap cardImage;
-    private Bitmap pointerImage;
-    private Bitmap interferenceImage;
-
-
-    // paint
-    private Paint imagePaint;
-    private Paint creamPaint;
-
-
-    private int displayedStatus;
-
-    private float compassBearingTo;
-    private int repeatedBearingCount;
-
-    private float compassCurrentBearing;
-    private float compassSpeed;
-
-    private CompassThread animationThread;
-
-    float getCanvasWidth() {
-        return getWidth();
-    }
-
-    float getCanvasHeight() {
-        return getHeight();
-    }
-
-    public CompassSurface(Context context) {
-        super(context);
-        init();
-
-    }
-
-    public CompassSurface(Context context, AttributeSet attrs) {
-        super(context, attrs);
-        init();
-    }
-
-    public CompassSurface(Context context, AttributeSet attrs, int defStyle) {
-        super(context, attrs, defStyle);
-        init();
-    }
-
-
-
-    private void init(){
-        // register our interest in hearing about changes to our surface
-        SurfaceHolder holder = getHolder();
-        holder.addCallback(this);
-    }
-
-
-    /*
-     * Callback invoked when the Surface has been created and is ready to be
-     * used.
-     */
-    @Override
-    public void surfaceCreated(SurfaceHolder holder) {
-
-        animationThread = new CompassThread(holder);
-        animationThread.setRunning(true);
-        animationThread.start();
-    }
-
-    @Override
-    public void surfaceChanged(SurfaceHolder surfaceHolder, int i, int i2, int i3) {
-
-    }
-
-    /*
-     * Callback invoked when the Surface has been destroyed and must no longer
-     * be touched. WARNING: after this method returns, the Surface/Canvas must
-     * never be touched again!
-     */
-    @Override
-    public void surfaceDestroyed(SurfaceHolder holder) {
-        stopAnimation();
-    }
-
-    /*public void pauseAnimation() {
-        synchronized (DirectionsApplication.getInstance().getModel()) {
-            Log.d("PROCESS!!", "wait1");
-            animationThread.setPausing(true);
-            Log.d("PROCESS!!", "wait2");
-        }
-    }
-
-    public void resumeAnimation() {
-        Model model = DirectionsApplication.getInstance().getModel();
-        synchronized (model) {
-            Log.d("PROCESS!!", "notify");
-            animationThread.setPausing(false);
-            model.notify();
-        }
-    }*/
-
-    public void stopAnimation() {
-        // we have to tell thread to shut down & wait for it to finish, or else
-        // it might touch the Surface after we return and explode
-        boolean retry = true;
-        if (animationThread != null) {
-            animationThread.setRunning(false);
-            while (retry) {
-                try {
-                    animationThread.join();
-                    retry = false;
-                } catch (InterruptedException e) {
-                    Log.d("CompassSurface", e.getMessage());
-                }
             }
         }
     }
