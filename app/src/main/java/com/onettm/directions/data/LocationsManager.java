@@ -38,9 +38,9 @@ public class LocationsManager extends Observable implements Observer {
 
     public boolean isRunning() {
         AsyncTask t = searchTask;
-        if (t != null)
-            if (t.isCancelled()) return false;
-        if (t.getStatus() != AsyncTask.Status.FINISHED) return true;
+        if (t == null) return false;
+        if (!t.isCancelled())
+            if (t.getStatus() != AsyncTask.Status.FINISHED) return true;
         return false;
     }
 
@@ -70,15 +70,17 @@ public class LocationsManager extends Observable implements Observer {
         setInvalid();
 
         AsyncTask<Location, Void, Void> at = new AsyncTask<Location, Void, Void>() {
+
             @Override
-            protected void onPreExecute() {
-                super.onPreExecute();
+            protected void onProgressUpdate(Void... values) {
+                super.onProgressUpdate(values);
                 setChanged();
                 notifyObservers();
             }
 
             @Override
             protected Void doInBackground(Location[] params) {
+                publishProgress();
                 Set<LocationItem> result = request(params[0]);
                 if (!locations.containsAll(result)) {
                     ArrayList<LocationItem> res = new ArrayList<LocationItem>(result);
@@ -98,7 +100,6 @@ public class LocationsManager extends Observable implements Observer {
                 setValid();
                 setChanged();
                 notifyObservers();
-
             }
 
             @Override

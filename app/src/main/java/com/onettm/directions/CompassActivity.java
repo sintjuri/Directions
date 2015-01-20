@@ -8,7 +8,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.drawable.AnimationDrawable;
-import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
@@ -126,7 +125,7 @@ public class CompassActivity extends Activity implements ListDialog.Callbacks {
                     listButton.invalidate();
                     final AnimationDrawable img = (AnimationDrawable)getResources().getDrawable( R.drawable.loader);
                     img.setBounds( 0, 0, listButton.getHeight()-8, listButton.getHeight()-8 );
-                    if(DirectionsApplication.getInstance().getLocationsManager().isRunning()){
+                    if(!DirectionsApplication.getInstance().getLocationsManager().isValid()){
                         img.start();
                         updateButton.setText(getString(R.string.updating));
                         updateButton.setCompoundDrawables( img, null, null, null );
