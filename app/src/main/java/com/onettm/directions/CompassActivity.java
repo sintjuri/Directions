@@ -252,6 +252,7 @@ public class CompassActivity extends Activity implements ListDialog.Callbacks {
         public void onPause() {
             // unregister from the directions to prevent undue battery drain
             compass.unregisterSensors();
+            DirectionsApplication.getInstance().getLocationsManager().cancel();
             // stop the animation
             surface.stopAnimation();
             // call the superclass
