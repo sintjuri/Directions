@@ -17,7 +17,7 @@ public class DirectionsApplication extends Application {
     private final Settings settings = new Settings();
 
     private final Model model = new Model();
-    private final LocationsManager locationsManager = new LocationsManager(model);
+    private LocationsManager locationsManager;
 
     public static DirectionsApplication getInstance() {
         return inst;
@@ -27,6 +27,7 @@ public class DirectionsApplication extends Application {
     public void onCreate() {
         super.onCreate();
         inst = this;
+        locationsManager = new LocationsManager(model);
         dbDataHelper = new DirDataHelper();
     }
 
