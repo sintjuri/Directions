@@ -248,9 +248,6 @@ public class CompassActivity extends Activity implements ListDialog.Callbacks {
 
             DirectionsApplication.getInstance().getModel().addObserver(textOutputUpdater);
             compass = new SensorListener(getActivity());
-            Timer firstTimeOnenDialogTimer = new Timer();
-            firstTimeOnenDialogTimer.schedule(new CheckFirstTimeToOpenDialogTask(this), 0, REPEATER_FIRST_TIME_OPEN_DIALOG);
-
 
             return rootView;
         }
@@ -289,9 +286,6 @@ public class CompassActivity extends Activity implements ListDialog.Callbacks {
                     .isProviderEnabled(LocationManager.GPS_PROVIDER)) {
                 showSettingsAlert();
             }
-
-            compassTimer = new Timer();
-            compassTimer.schedule(new CompassTimerTask((CompassActivity) getActivity(), this), 0, REPEATER_COMPASS_TIMER);
         }
 
     }
