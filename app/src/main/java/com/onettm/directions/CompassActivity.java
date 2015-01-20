@@ -30,7 +30,6 @@ import com.google.android.gms.ads.AdView;
 
 import java.util.Observable;
 import java.util.Observer;
-import java.util.Timer;
 
 
 public class CompassActivity extends Activity implements ListDialog.Callbacks {
@@ -165,8 +164,6 @@ public class CompassActivity extends Activity implements ListDialog.Callbacks {
 
         private CompassSurface surface;
 
-        private Timer compassTimer;
-
         private SensorListener compass;
         private boolean questionMarkRendered;
         private TextView textOutput;
@@ -258,7 +255,6 @@ public class CompassActivity extends Activity implements ListDialog.Callbacks {
             compass.unregisterSensors();
             // stop the animation
             surface.stopAnimation();
-            compassTimer.cancel();
             // call the superclass
             super.onPause();
         }
