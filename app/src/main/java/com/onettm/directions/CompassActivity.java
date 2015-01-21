@@ -124,11 +124,11 @@ public class CompassActivity extends Activity implements ListDialog.Callbacks {
                     listButton.setText(listButtonText);
                     listButton.invalidate();
                     final AnimationDrawable img = (AnimationDrawable)getResources().getDrawable( R.drawable.loader);
-                    img.setBounds( 0, 0, listButton.getHeight()-8, listButton.getHeight()-8 );
+                    img.setBounds( 0, 0, listButton.getHeight(), listButton.getHeight() );
                     if(!DirectionsApplication.getInstance().getLocationsManager().isValid()){
-                        img.start();
                         updateButton.setText(getString(R.string.updating));
                         updateButton.setCompoundDrawables( img, null, null, null );
+                        img.start();
 
                     }else{
                         img.stop();
