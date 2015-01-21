@@ -265,7 +265,7 @@ public class CompassActivity extends Activity implements ListDialog.Callbacks {
 
             // register to receive events from the directions
             compass.registerSensors();
-
+            surface.tryToStartAnimation();
             if (!compass.isAccelerometerAvailable()) {
                 new AlertDialog.Builder(getActivity())
                         .setMessage(R.string.accelerometer_not_available)

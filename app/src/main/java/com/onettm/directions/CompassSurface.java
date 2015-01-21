@@ -73,9 +73,7 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
 
-        animationThread = new CompassThread(holder);
-        animationThread.setRunning(true);
-        animationThread.start();
+        tryToStartAnimation();
     }
 
     @Override
@@ -93,22 +91,37 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
         stopAnimation();
     }
 
+    public void createThread(SurfaceHolder holder) {
+        animationThread = new CompassThread(holder);
+        animationThread.setRunning(true);
+        animationThread.start();
+    }
+
+    public void tryToStartAnimation() {
+        if (animationThread == null) {
+            createThread(getHolder());
+        }
+    }
+
     public void stopAnimation() {
         // we have to tell thread to shut down & wait for it to finish, or else
         // it might touch the Surface after we return and explode
-        boolean retry = true;
+
         if (animationThread != null) {
+            boolean retry = true;
             animationThread.setRunning(false);
             while (retry) {
                 try {
                     animationThread.join();
                     retry = false;
                 } catch (InterruptedException e) {
-                    Log.d("CompassSurface", e.getMessage());
+                    Log.d("CompassSurface", "stopAnimation");
                 }
             }
+            animationThread = null;
         }
     }
+
 
     class CompassThread extends Thread {
 
