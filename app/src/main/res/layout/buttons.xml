@@ -12,7 +12,7 @@
     <Button
         android:id="@+id/updateListButton"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:text="@string/update"
         android:layout_weight="30" />
     <Button
