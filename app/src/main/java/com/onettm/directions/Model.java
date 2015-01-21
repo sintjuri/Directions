@@ -17,14 +17,14 @@ public class Model extends Observable{
     private float[] accelValues;
 
     //private boolean sensorHasNewData;
-    private int status;
+    private volatile int status;
     private GeomagneticField geoField;
     private Location currentLocation;
 
-    private String destinationName;
-    private LocationItem[] decisionPointLocationItems;
-    private Location destinationLocation;
-    private Location decisionPoint;
+    private volatile String destinationName;
+    private volatile LocationItem[] decisionPointLocationItems;
+    private volatile Location destinationLocation;
+    private volatile Location decisionPoint;
 
     public synchronized Data getData(){
 
@@ -55,18 +55,18 @@ public class Model extends Observable{
         return result;
     }
 
-    public synchronized void setStatus(int status){
+    public void setStatus(int status){
         this.status = status;
     }
 
 
-    public synchronized void setMagValues(float[] values) {
+    public void setMagValues(float[] values) {
         magValues = values;
         // check for interference
         interferenceTest(magValues);
     }
 
-    public synchronized void setAccelValues(float[] accelValues) {
+    public void setAccelValues(float[] accelValues) {
         this.accelValues = accelValues;
     }
 
@@ -77,15 +77,15 @@ public class Model extends Observable{
         if (locationCache != null) notifyObservers(locationCache);
     }
 
-    public synchronized void setDestinationName(String destinationName) {
+    public void setDestinationName(String destinationName) {
         this.destinationName = destinationName;
     }
 
-    public synchronized void setDecisionPointLocationItems(LocationItem[] decisionPointLocationItems) {
+    public void setDecisionPointLocationItems(LocationItem[] decisionPointLocationItems) {
         this.decisionPointLocationItems = decisionPointLocationItems;
     }
 
-    public synchronized void setDestinationLocation(Location destinationLocation) {
+    public void setDestinationLocation(Location destinationLocation) {
         this.destinationLocation = destinationLocation;
     }
 

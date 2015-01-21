@@ -115,8 +115,8 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
         private static final int TARGET_FPS = 30;
         private static final int MINIMUM_SLEEP_TIME = 10;
 
-        private static final int REQUIRED_BEARING_CHANGE = 3;
-        private static final int REQUIRED_BEARING_REPEAT = 10;
+        private static final int REQUIRED_BEARING_CHANGE = 5;
+        private static final int REQUIRED_BEARING_REPEAT = 40;
 
 
         private static final float COMPASS_ACCEL_RATE = 0.9f;
@@ -263,7 +263,6 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
 
             while (mRun) {
                 long requiredSleepTime;
-                synchronized (model) {
                     data = model.getData();
                     long startTime = System.currentTimeMillis();
                     update(data);
@@ -274,15 +273,10 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
                     if (requiredSleepTime < MINIMUM_SLEEP_TIME) {
                         requiredSleepTime = MINIMUM_SLEEP_TIME;
                     }
-                    long targetTime = (System.currentTimeMillis() + requiredSleepTime);
-
-                    try {
-                        while (System.currentTimeMillis()  < targetTime) {
-                            model.wait(requiredSleepTime);
-                        }
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                    }
+                try {
+                    Thread.currentThread().sleep(requiredSleepTime);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
                 }
             }
         }
