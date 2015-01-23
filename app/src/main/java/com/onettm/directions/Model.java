@@ -70,11 +70,13 @@ public class Model extends Observable{
         this.accelValues = accelValues;
     }
 
-    public synchronized void updateLocation(Location locationCache) {
-        this.currentLocation = locationCache;
-        updateGeoField(locationCache);
-        setChanged();
-        if (locationCache != null) notifyObservers(locationCache);
+    public void updateLocation(Location newCurrentLocation) {
+        synchronized(this) {
+            this.currentLocation = newCurrentLocation;
+            updateGeoField(newCurrentLocation);
+            setChanged();
+        }
+        if (newCurrentLocation != null) notifyObservers(newCurrentLocation);
     }
 
     public void setDestinationName(String destinationName) {
@@ -87,6 +89,8 @@ public class Model extends Observable{
 
     public void setDestinationLocation(Location destinationLocation) {
         this.destinationLocation = destinationLocation;
+        setChanged();
+        if (currentLocation != null) notifyObservers(currentLocation);
     }
 
     public void setDecisionPoint(Location decisionPoint) {
