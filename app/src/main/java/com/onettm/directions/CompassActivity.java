@@ -249,7 +249,7 @@ public class CompassActivity extends Activity implements ListDialog.Callbacks {
             compass.unregisterSensors();
             DirectionsApplication.getInstance().getLocationsManager().cancel();
             // stop the animation
-            surface.stopAnimation();
+            surface.pause();
             // call the superclass
             super.onPause();
         }
@@ -260,7 +260,7 @@ public class CompassActivity extends Activity implements ListDialog.Callbacks {
 
             // register to receive events from the directions
             compass.registerSensors();
-            surface.tryToStartAnimation();
+            surface.resume();
             textOutputUpdater = new Observer() {
                 @Override
                 public void update(Observable observable, Object data) {

@@ -12,28 +12,10 @@ import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
-import java.util.Date;
+import java.util.concurrent.Callable;
 
 public class CompassSurface extends SurfaceView implements SurfaceHolder.Callback {
 
-
-    /**
-     * constants *
-     */
-
-    private static final int STATUS_NO_EVENT = -1;
-    // images
-    private Bitmap cardImage;
-    private Bitmap pointerImage;
-    private Bitmap interferenceImage;
-    // paint
-    private Paint imagePaint;
-    private Paint creamPaint;
-    private int displayedStatus;
-    private float compassBearingTo;
-    private int repeatedBearingCount;
-    private float compassCurrentBearing;
-    private float compassSpeed;
     private CompassThread animationThread;
 
     public CompassSurface(Context context) {
@@ -66,14 +48,25 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
         holder.addCallback(this);
     }
 
+
     /*
      * Callback invoked when the Surface has been created and is ready to be
      * used.
      */
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
+        if (animationThread == null) {
+            createThread();
+        }
+    }
 
-        tryToStartAnimation();
+    public void pause() {
+        animationThread.standBy();
+    }
+
+    public void resume() {
+        if (animationThread != null)
+        animationThread.wake();
     }
 
     @Override
@@ -91,16 +84,11 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
         stopAnimation();
     }
 
-    public void createThread(SurfaceHolder holder) {
-        animationThread = new CompassThread(holder);
-        animationThread.setRunning(true);
+    public void createThread() {
+        animationThread = new CompassThread();
+        animationThread.threadRunning = true;
+        animationThread.setTask(new surfaceUpdateTask(getHolder()));
         animationThread.start();
-    }
-
-    public void tryToStartAnimation() {
-        if (animationThread == null) {
-            createThread(getHolder());
-        }
     }
 
     public void stopAnimation() {
@@ -108,10 +96,14 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
         // it might touch the Surface after we return and explode
 
         if (animationThread != null) {
+            animationThread.threadRunning = false;
+
             boolean retry = true;
-            animationThread.setRunning(false);
             while (retry) {
                 try {
+                    synchronized (animationThread) {
+                        animationThread.notifyAll();
+                    }
                     animationThread.join();
                     retry = false;
                 } catch (InterruptedException e) {
@@ -122,46 +114,136 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
         }
     }
 
-
     class CompassThread extends Thread {
 
         private static final int TARGET_FPS = 30;
         private static final int MINIMUM_SLEEP_TIME = 10;
 
+        /**
+         * variables *
+         */
+
+        private volatile boolean threadRunning = false;
+        private volatile Callable task;
+        private volatile boolean standBy = false;
+
+        public CompassThread() {
+            super("AnimationThread");
+        }
+
+        public synchronized void setTask(Callable task) {
+            this.task = task;
+            threadRunning = true;
+            standBy = false;
+            wake();
+        }
+
+        public void run() {
+            long maxSleepTime = (long) Math.floor(1000 / TARGET_FPS);
+            long plannedFinish;
+            long finishTime;
+            while (threadRunning) {
+                long requiredSleepTime;
+                long startTime = System.currentTimeMillis();
+
+                if (task != null) try {
+                    task.call();
+                } catch (Exception e) {
+                    Log.d(CompassSurface.class.getCanonicalName(), "exception calling surface update", e);
+                }
+                else
+                    Log.d(this.getClass().getCanonicalName(), "No callable set");
+                finishTime = System.currentTimeMillis();
+
+                requiredSleepTime = maxSleepTime - (finishTime - startTime);
+                if (requiredSleepTime < MINIMUM_SLEEP_TIME) {
+                    requiredSleepTime = MINIMUM_SLEEP_TIME;
+                }
+                Log.d(this.getClass().getCanonicalName(), "duration: " + (finishTime - startTime));
+                synchronized (this) {
+                    try {
+                        plannedFinish = System.currentTimeMillis() + requiredSleepTime;
+                        long waitTime;
+                        while(threadRunning && standBy) wait();
+                        while (threadRunning && ((waitTime = plannedFinish - System.currentTimeMillis() ) > 0)) {
+                            Log.d(this.getClass().getCanonicalName(), "will wait for " + waitTime + "ms");
+                            wait(waitTime);
+                        }
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+                }
+
+            }
+        }
+
+        public synchronized void standBy() {
+            threadRunning = true;
+            standBy = true;
+        }
+
+        public synchronized void wake() {
+            threadRunning = true;
+            standBy = false;
+            notifyAll();
+        }
+
+    }
+    private class surfaceUpdateTask implements Callable {
         private static final int REQUIRED_BEARING_CHANGE = 5;
         private static final int REQUIRED_BEARING_REPEAT = 40;
 
 
         private static final float COMPASS_ACCEL_RATE = 0.9f;
         private static final float COMPASS_SPEED_MODIFIER = 0.26f;
-        /**
-         * variables *
-         */
+        private static final int STATUS_NO_EVENT = -1;
+        private final SurfaceHolder surfaceHolder;
+        // images
+        private Bitmap cardImage;
+        private Bitmap pointerImage;
+        private Bitmap interferenceImage;
+        // paint
+        private Paint imagePaint;
+        private Paint creamPaint;
+        private int displayedStatus;
+        private float compassBearingTo;
+        private int repeatedBearingCount;
+        private float compassCurrentBearing;
+        private float compassSpeed;
 
-        private final SurfaceHolder mSurfaceHolder;
-        private Data data;
-        private volatile boolean mRun;
-
-        public CompassThread(SurfaceHolder holder) {
-            super("AnimationThread");
-            mSurfaceHolder = holder;
+        private surfaceUpdateTask(SurfaceHolder surfaceHolder) {
+            this.surfaceHolder = surfaceHolder;
+            initDrawing();
         }
 
-        /**
-         * Used to signal the thread whether it should be running or not.
-         * Passing true allows the thread to run; passing false will shut it
-         * down if it's already running. Calling start() after this was most
-         * recently called with false will result in an immediate shutdown.
-         *
-         * @param b true to run, false to shut down
-         */
-        public void setRunning(boolean b) {
-            mRun = b;
+        @Override
+        public Object call() throws Exception {
+            Model model = DirectionsApplication.getInstance().getModel();
+            Data data = model.getData();
+            update(data);
+            triggerDraw(data);
+            return null;
+        }
+
+        void triggerDraw(Data data) {
+            Canvas canvas = null;
+            try {
+                canvas = surfaceHolder.lockCanvas();
+                if (canvas != null) {
+                    this.doDraw(canvas, data);
+                }
+
+            } finally {
+                if (canvas != null) {
+                    surfaceHolder.unlockCanvasAndPost(canvas);
+                }
+            }
         }
 
         private void updateBearing(Data data) {
 
             float newBearing = data.getPositiveBearing();
+            Log.d(this.getClass().getCanonicalName(), "bearing: " + newBearing);
             if (Math.abs(compassBearingTo - newBearing) > REQUIRED_BEARING_CHANGE) {
                 compassBearingTo = newBearing;
                 repeatedBearingCount = 0;
@@ -204,6 +286,15 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
 
         }
 
+        private void updateAccuracy(Data data) {
+            int status = data.getStatus();
+            if (displayedStatus == STATUS_NO_EVENT) {
+                if (status == Model.STATUS_INTERFERENCE) {
+                    displayedStatus = status;
+                }
+            }
+        }
+
         public void doDraw(Canvas canvas, final Data data) {
             float canvasSize = Math.min(getCanvasWidth(), getCanvasHeight());
             float canvasCenterX = getCanvasWidth() / 2;
@@ -242,56 +333,6 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
             Paint bluePaint = new Paint();
             bluePaint.setARGB(255, 0, 94, 155);
 
-        }
-
-        private void updateAccuracy(Data data) {
-            int status = data.getStatus();
-            if (displayedStatus == STATUS_NO_EVENT) {
-                if (status == Model.STATUS_INTERFERENCE) {
-                    displayedStatus = status;
-                }
-            }
-        }
-
-
-        void triggerDraw(Data data) {
-            Canvas canvas = null;
-            try {
-                canvas = mSurfaceHolder.lockCanvas();
-                if (canvas != null) {
-                    this.doDraw(canvas, data);
-                }
-
-            } finally {
-                if (canvas != null) {
-                    mSurfaceHolder.unlockCanvasAndPost(canvas);
-                }
-            }
-        }
-
-        public void run() {
-            initDrawing();
-            long maxSleepTime = (long) Math.floor(1000 / TARGET_FPS);
-            Model model = DirectionsApplication.getInstance().getModel();
-
-            while (mRun) {
-                long requiredSleepTime;
-                    data = model.getData();
-                    long startTime = System.currentTimeMillis();
-                    update(data);
-                    triggerDraw(data);
-
-                    long finishTime = System.currentTimeMillis();
-                    requiredSleepTime = maxSleepTime - (finishTime - startTime);
-                    if (requiredSleepTime < MINIMUM_SLEEP_TIME) {
-                        requiredSleepTime = MINIMUM_SLEEP_TIME;
-                    }
-                try {
-                    Thread.currentThread().sleep(requiredSleepTime);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                }
-            }
         }
     }
 }
