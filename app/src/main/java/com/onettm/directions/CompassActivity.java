@@ -145,21 +145,17 @@ public class CompassActivity extends Activity implements ListDialog.Callbacks {
                     listButton.invalidate();
                     final AnimationDrawable img = (AnimationDrawable) getResources().getDrawable(R.drawable.loader);
                     img.setBounds(0, 0, listButton.getHeight() / 2, listButton.getHeight() / 2);
-                    if (!DirectionsApplication.getInstance().getLocationsManager().isCurrentLocationAvailable()) {
-                        updateButton.setEnabled(false);
-                    } else {
-                        updateButton.setEnabled(true);
-                        if (!DirectionsApplication.getInstance().getLocationsManager().isValid()) {
-                            updateButton.setText(getString(R.string.updating));
-                            updateButton.setCompoundDrawables(img, null, null, null);
-                            //updateButton.setCompoundDrawablesWithIntrinsicBounds(img, null, null, null);
-                            img.start();
+                    updateButton.setEnabled(true);
+                    if (!DirectionsApplication.getInstance().getLocationsManager().isValid()) {
+                        updateButton.setText(getString(R.string.updating));
+                        updateButton.setCompoundDrawables(img, null, null, null);
+                        //updateButton.setCompoundDrawablesWithIntrinsicBounds(img, null, null, null);
+                        img.start();
 
-                        } else {
-                            img.stop();
-                            updateButton.setText(getString(R.string.update));
-                            updateButton.setCompoundDrawables(null, null, null, null);
-                        }
+                    } else {
+                        img.stop();
+                        updateButton.setText(getString(R.string.update));
+                        updateButton.setCompoundDrawables(null, null, null, null);
                     }
 
                     updateButton.invalidate();
