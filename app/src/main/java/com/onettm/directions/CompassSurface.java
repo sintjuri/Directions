@@ -165,7 +165,7 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
                         plannedFinish = System.currentTimeMillis() + requiredSleepTime;
                         long waitTime;
                         while(threadRunning && standBy) wait();
-                        while (threadRunning && ((waitTime = plannedFinish - System.currentTimeMillis() ) > 0)) {
+                        while (threadRunning && ((waitTime = plannedFinish - System.currentTimeMillis() ) > MINIMUM_SLEEP_TIME)) {
                             Log.d(this.getClass().getCanonicalName(), "will wait for " + waitTime + "ms");
                             wait(waitTime);
                         }
