@@ -119,6 +119,14 @@ public class CompassActivity extends Activity implements ListDialog.Callbacks {
                 }
             });
 
+            Button settingsButton = (Button) rootView.findViewById(R.id.settingsButton);
+            settingsButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(getActivity(), SettingsActivity.class);
+                    startActivity(intent);
+                }
+            });
 
             return rootView;
         }
