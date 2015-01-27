@@ -66,7 +66,7 @@ public class LocationsManager extends Observable implements Observer {
     }
 
     public synchronized void update(Location curLoc) {
-        if(curLoc == null) return;
+        if (curLoc == null) return;
         if (!valid)
             if (isRunning()) return;
         setInvalid();
@@ -196,6 +196,10 @@ public class LocationsManager extends Observable implements Observer {
 
     public boolean isValid() {
         return valid;
+    }
+
+    public boolean isInitialized() {
+        return lastLocation != null;
     }
 
     @Override

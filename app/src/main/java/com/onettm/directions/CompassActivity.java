@@ -26,6 +26,7 @@ import android.widget.Toast;
 
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
+import com.onettm.directions.data.LocationsManager;
 
 import java.util.Observable;
 import java.util.Observer;
@@ -119,14 +120,7 @@ public class CompassActivity extends Activity implements ListDialog.Callbacks {
                 }
             });
 
-            Button settingsButton = (Button) rootView.findViewById(R.id.settingsButton);
-            settingsButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Intent intent = new Intent(getActivity(), SettingsActivity.class);
-                    startActivity(intent);
-                }
-            });
+
 
             return rootView;
         }
@@ -151,16 +145,16 @@ public class CompassActivity extends Activity implements ListDialog.Callbacks {
                     String listButtonText = getString(R.string.show_list, DirectionsApplication.getInstance().getLocationsManager().getLocationItems().size());
                     listButton.setText(listButtonText);
                     listButton.invalidate();
-                    final AnimationDrawable img = (AnimationDrawable) getResources().getDrawable(R.drawable.loader);
-                    img.setBounds(0, 0, listButton.getHeight() / 2, listButton.getHeight() / 2);
-                    updateButton.setEnabled(true);
-                    if (!DirectionsApplication.getInstance().getLocationsManager().isValid()) {
+                    final AnimationDrawable img = (AnimationDrawable)getResources().getDrawable( R.drawable.loader);
+                    img.setBounds(2, 2, listButton.getHeight() - 2, listButton.getHeight() - 2);
+                    LocationsManager locationManager = DirectionsApplication.getInstance().getLocationsManager();
+                    updateButton.setEnabled(locationManager.isInitialized());
+                    if(!locationManager.isValid()){
                         updateButton.setText(getString(R.string.updating));
-                        updateButton.setCompoundDrawables(img, null, null, null);
-                        //updateButton.setCompoundDrawablesWithIntrinsicBounds(img, null, null, null);
+                        updateButton.setCompoundDrawables( img, null, null, null );
                         img.start();
 
-                    } else {
+                    }else{
                         img.stop();
                         updateButton.setText(getString(R.string.update));
                         updateButton.setCompoundDrawables(null, null, null, null);
