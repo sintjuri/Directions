@@ -142,12 +142,14 @@ public class CompassActivity extends Activity implements ListDialog.Callbacks {
             buttonsUpdater = new Observer() {
                 @Override
                 public void update(Observable observable, Object data) {
-                    String listButtonText = getString(R.string.show_list, DirectionsApplication.getInstance().getLocationsManager().getLocationItems().size());
+                    LocationsManager locationManager = DirectionsApplication.getInstance().getLocationsManager();
+                    String listButtonText = getString(R.string.show_list, locationManager.getLocationItems().size());
+                    listButton.setEnabled(!locationManager.getLocationItems().isEmpty());
                     listButton.setText(listButtonText);
                     listButton.invalidate();
                     final AnimationDrawable img = (AnimationDrawable)getResources().getDrawable( R.drawable.loader);
                     img.setBounds(2, 2, listButton.getHeight() - 2, listButton.getHeight() - 2);
-                    LocationsManager locationManager = DirectionsApplication.getInstance().getLocationsManager();
+
                     updateButton.setEnabled(locationManager.isInitialized());
                     if(!locationManager.isValid()){
                         updateButton.setText(getString(R.string.updating));
