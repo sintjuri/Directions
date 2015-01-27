@@ -83,8 +83,6 @@ public class CompassActivity extends Activity implements ListDialog.Callbacks {
     public void onItemSelected(LocationItem locationItem, LocationItem[] destinations) {
 
         Model model = DirectionsApplication.getInstance().getModel();
-        model.setDecisionPoint(locationItem.getCurrentLocation());
-        model.setDecisionPointLocationItems(destinations);
         model.setDestinationName(locationItem.getName());
         model.setDestinationLocation(locationItem.getLocation());
     }

@@ -7,13 +7,10 @@ import android.location.Location;
 
 public class Data {
 
-
     private int status;
     private Location location;
     private Location destinationLocation;
     private String destinationName;
-    private Location decisionPoint;
-    private LocationItem[] decisionPointLocationItems;
     private float[] magValues;
     private float[] accelValues;
     private float declination;
@@ -34,14 +31,6 @@ public class Data {
         return destinationName;
     }
 
-    public Location getDecisionPoint() {
-        return decisionPoint;
-    }
-
-    public LocationItem[] getDecisionPointLocationItems() {
-        return decisionPointLocationItems;
-    }
-
     public void setStatus(int status) {
         this.status = status;
     }
@@ -52,14 +41,6 @@ public class Data {
 
     public void setDestinationName(String destinationName) {
         this.destinationName = destinationName;
-    }
-
-    public void setDecisionPoint(Location decisionPoint) {
-        this.decisionPoint = decisionPoint;
-    }
-
-    public void setDecisionPointLocationItems(LocationItem[] decisionPointLocationItems) {
-        this.decisionPointLocationItems = decisionPointLocationItems;
     }
 
     public float getPositiveBearing() {
