@@ -3,22 +3,25 @@
     android:orientation="horizontal" android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <Button
+    <ImageButton
         android:id="@+id/openListButton"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/load"
-        android:layout_weight="30" />
-    <Button
+        android:layout_height="match_parent"
+        android:layout_weight="30"
+        android:singleLine="true"
+        android:src="@drawable/btn_settings"
+        />
+    <ImageButton
         android:id="@+id/updateListButton"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:text="@string/update"
-        android:layout_weight="30" />
-    <Button
+        android:layout_weight="30"
+        android:singleLine="true"/>
+    <ImageButton
         android:id="@+id/settingsButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/settings"
-        android:layout_weight="30" />
+        android:layout_weight="30"
+        android:src="@drawable/btn_settings"
+        android:singleLine="true"/>
 </LinearLayout>

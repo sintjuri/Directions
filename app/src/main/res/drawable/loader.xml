@@ -3,5 +3,4 @@
     android:oneshot="false" >
     <item android:drawable="@drawable/loading1" android:duration="100" />
     <item android:drawable="@drawable/loading2" android:duration="100" />
-    <item android:drawable="@drawable/loading3" android:duration="100" />
 </animation-list>

@@ -8,6 +8,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.drawable.AnimationDrawable;
+import android.graphics.drawable.Drawable;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
@@ -21,6 +22,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -91,14 +93,15 @@ public class CompassActivity extends Activity implements ListDialog.Callbacks {
     public static class ButtonsFragment extends Fragment {
 
         private Observer buttonsUpdater;
-        private Button listButton;
-        private Button updateButton;
+        private ImageButton listButton;
+        private ImageButton settingsButton;
+        private ImageButton updateButton;
 
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
             View rootView = inflater.inflate(R.layout.buttons, container, false);
-            listButton = (Button) rootView.findViewById(R.id.openListButton);
+            listButton = (ImageButton) rootView.findViewById(R.id.openListButton);
 
             listButton.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -110,7 +113,7 @@ public class CompassActivity extends Activity implements ListDialog.Callbacks {
                 }
             });
 
-            updateButton = (Button) rootView.findViewById(R.id.updateListButton);
+            updateButton = (ImageButton) rootView.findViewById(R.id.updateListButton);
             updateButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -119,7 +122,7 @@ public class CompassActivity extends Activity implements ListDialog.Callbacks {
                 }
             });
 
-            Button settingsButton = (Button) rootView.findViewById(R.id.settingsButton);
+            settingsButton = (ImageButton)rootView.findViewById(R.id.settingsButton);
             settingsButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -128,10 +131,12 @@ public class CompassActivity extends Activity implements ListDialog.Callbacks {
                 }
             });
 
+
+
             return rootView;
         }
 
-        public void openListLocations() {
+        private void openListLocations() {
             if (DirectionsApplication.getInstance().getModel().getData().getLocation() != null) {
                 ListDialog listDialog = new ListDialog();
                 FragmentManager fm = getFragmentManager();
@@ -148,22 +153,24 @@ public class CompassActivity extends Activity implements ListDialog.Callbacks {
             buttonsUpdater = new Observer() {
                 @Override
                 public void update(Observable observable, Object data) {
-                    String listButtonText = getString(R.string.show_list, DirectionsApplication.getInstance().getLocationsManager().getLocationItems().size());
-                    listButton.setText(listButtonText);
+                    int size = DirectionsApplication.getInstance().getLocationsManager().getLocationItems().size();
+                    if (size>0){
+                        listButton.setEnabled(true);
+                    }else{
+                        listButton.setEnabled(false);
+                    }
                     listButton.invalidate();
-                    final AnimationDrawable img = (AnimationDrawable) getResources().getDrawable(R.drawable.loader);
-                    img.setBounds(0, 0, listButton.getHeight() / 2, listButton.getHeight() / 2);
+
+                    final Drawable updateDrawable = getResources().getDrawable(R.drawable.btn_settings);
+                    final AnimationDrawable progressImage = (AnimationDrawable) getResources().getDrawable(R.drawable.loader);
+                    progressImage.setBounds(0, 0, listButton.getHeight() / 2, listButton.getHeight() / 2);
                     updateButton.setEnabled(true);
                     if (!DirectionsApplication.getInstance().getLocationsManager().isValid()) {
-                        updateButton.setText(getString(R.string.updating));
-                        updateButton.setCompoundDrawables(img, null, null, null);
-                        //updateButton.setCompoundDrawablesWithIntrinsicBounds(img, null, null, null);
-                        img.start();
-
+                        updateButton.setImageDrawable(progressImage);
+                        progressImage.start();
                     } else {
-                        img.stop();
-                        updateButton.setText(getString(R.string.update));
-                        updateButton.setCompoundDrawables(null, null, null, null);
+                        progressImage.stop();
+                        updateButton.setImageDrawable(updateDrawable);
                     }
 
                     updateButton.invalidate();
