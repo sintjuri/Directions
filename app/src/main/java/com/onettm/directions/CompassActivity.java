@@ -150,27 +150,27 @@ public class CompassActivity extends Activity implements ListDialog.Callbacks {
             buttonsUpdater = new Observer() {
                 @Override
                 public void update(Observable observable, Object data) {
-                    LocationsManager locationManager = DirectionsApplication.getInstance().getLocationsManager();
-                    String listButtonText = getString(R.string.show_list, locationManager.getLocationItems().size());
-                    listButton.setEnabled(!locationManager.getLocationItems().isEmpty());
-                    listButton.setText(listButtonText);
-                    listButton.invalidate();
-                    final AnimationDrawable img = (AnimationDrawable)getResources().getDrawable( R.drawable.loader);
-                    img.setBounds(2, 2, listButton.getHeight() - 2, listButton.getHeight() - 2);
-
-                    updateButton.setEnabled(locationManager.isInitialized());
-                    if(!locationManager.isValid()){
-                        updateButton.setText(getString(R.string.updating));
-                        updateButton.setCompoundDrawables( img, null, null, null );
-                        img.start();
-
+                    int size = DirectionsApplication.getInstance().getLocationsManager().getLocationItems().size();
+                    if (size>0){
+                        listButton.setEnabled(true);
                     }else{
-                        img.stop();
-                        updateButton.setText(getString(R.string.update));
-                        updateButton.setCompoundDrawables(null, null, null, null);
+                        listButton.setEnabled(false);
+                    }
+                    listButton.invalidate();
+
+                    final Drawable updateDrawable = getResources().getDrawable(R.drawable.btn_settings);
+                    final AnimationDrawable progressImage = (AnimationDrawable) getResources().getDrawable(R.drawable.loader);
+                    progressImage.setBounds(0, 0, listButton.getHeight() / 2, listButton.getHeight() / 2);
+                    updateButton.setEnabled(true);
+                    if (!DirectionsApplication.getInstance().getLocationsManager().isValid()) {
+                        updateButton.setImageDrawable(progressImage);
+                        progressImage.start();
+                    } else {
+                        progressImage.stop();
+                        updateButton.setImageDrawable(updateDrawable);
                     }
 
-                    updateButton.invalidate();
+
                 }
             };
             buttonsUpdater.update(null, null);
