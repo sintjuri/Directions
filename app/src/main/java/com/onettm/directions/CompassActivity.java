@@ -21,7 +21,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -150,7 +149,8 @@ public class CompassActivity extends Activity implements ListDialog.Callbacks {
             buttonsUpdater = new Observer() {
                 @Override
                 public void update(Observable observable, Object data) {
-                    int size = DirectionsApplication.getInstance().getLocationsManager().getLocationItems().size();
+                    final LocationsManager locationsManager = DirectionsApplication.getInstance().getLocationsManager();
+                    int size = locationsManager.getLocationItems().size();
                     if (size>0){
                         listButton.setEnabled(true);
                     }else{
@@ -158,14 +158,15 @@ public class CompassActivity extends Activity implements ListDialog.Callbacks {
                     }
                     listButton.invalidate();
 
-                    final Drawable updateDrawable = getResources().getDrawable(R.drawable.btn_update);
                     final AnimationDrawable progressImage = (AnimationDrawable) getResources().getDrawable(R.drawable.loader);
-                    updateButton.setEnabled(true);
-                    if (!DirectionsApplication.getInstance().getLocationsManager().isValid()) {
+
+                    updateButton.setEnabled(locationsManager.isInitialized());
+                    if (!locationsManager.isValid()) {
                         updateButton.setImageDrawable(progressImage);
                         progressImage.start();
                     } else {
                         progressImage.stop();
+                        final Drawable updateDrawable = getResources().getDrawable(R.drawable.btn_update);
                         updateButton.setImageDrawable(updateDrawable);
                     }
 
