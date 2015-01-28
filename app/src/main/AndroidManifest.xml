@@ -1,10 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-  NiceCompass
-  Released under the BSD License. See README or LICENSE.
-  Copyright (c) 2011, Digital Lizard (Oscar Key, Thomas Boby)
-  All rights reserved.
--->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.onettm.directions" >
 
