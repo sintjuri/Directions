@@ -22,9 +22,7 @@ public class Model extends Observable{
     private Location currentLocation;
 
     private volatile String destinationName;
-    private volatile LocationItem[] decisionPointLocationItems;
     private volatile Location destinationLocation;
-    private volatile Location decisionPoint;
 
     public synchronized Data getData(){
 
@@ -37,12 +35,7 @@ public class Model extends Observable{
         if(destinationLocation!=null) {
             result.setDestinationLocation(new Location(destinationLocation));
         }
-        if(decisionPoint!=null) {
-            result.setDecisionPoint(new Location(decisionPoint));
-        }
-        if(decisionPointLocationItems!=null) {
-            result.setDecisionPointLocationItems(decisionPointLocationItems.clone());
-        }
+
         if(magValues!=null) {
             result.setMagValues(magValues.clone());
         }
@@ -83,18 +76,10 @@ public class Model extends Observable{
         this.destinationName = destinationName;
     }
 
-    public void setDecisionPointLocationItems(LocationItem[] decisionPointLocationItems) {
-        this.decisionPointLocationItems = decisionPointLocationItems;
-    }
-
     public void setDestinationLocation(Location destinationLocation) {
         this.destinationLocation = destinationLocation;
         setChanged();
         if (currentLocation != null) notifyObservers(currentLocation);
-    }
-
-    public void setDecisionPoint(Location decisionPoint) {
-        this.decisionPoint = decisionPoint;
     }
 
     private void updateGeoField(Location location) {
