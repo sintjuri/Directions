@@ -160,7 +160,6 @@ public class CompassActivity extends Activity implements ListDialog.Callbacks {
 
                     final Drawable updateDrawable = getResources().getDrawable(R.drawable.btn_settings);
                     final AnimationDrawable progressImage = (AnimationDrawable) getResources().getDrawable(R.drawable.loader);
-                    progressImage.setBounds(0, 0, listButton.getHeight() / 2, listButton.getHeight() / 2);
                     updateButton.setEnabled(true);
                     if (!DirectionsApplication.getInstance().getLocationsManager().isValid()) {
                         updateButton.setImageDrawable(progressImage);
