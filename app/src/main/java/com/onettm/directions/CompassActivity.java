@@ -150,12 +150,14 @@ public class CompassActivity extends Activity implements ListDialog.Callbacks {
                 @Override
                 public void update(Observable observable, Object data) {
                     final LocationsManager locationsManager = DirectionsApplication.getInstance().getLocationsManager();
-                    int size = locationsManager.getLocationItems().size();
-                    if (size>0){
-                        listButton.setEnabled(true);
-                    }else{
-                        listButton.setEnabled(false);
+                    listButton.setEnabled(!locationsManager.getLocationItems().isEmpty());
+                    if (locationsManager.isInitialized()){
+                        listButton.setImageResource(android.R.drawable.ic_menu_mylocation);
                     }
+                    else{
+                        listButton.setImageResource(R.drawable.btn_settings);
+                    }
+
                     listButton.invalidate();
 
                     final AnimationDrawable progressImage = (AnimationDrawable) getResources().getDrawable(R.drawable.loader);
