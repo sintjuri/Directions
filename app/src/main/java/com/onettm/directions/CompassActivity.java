@@ -127,11 +127,14 @@ public class CompassActivity extends Activity implements ListDialog.Callbacks {
                 public void update(Observable observable, Object data) {
                     final LocationsManager locationsManager = DirectionsApplication.getInstance().getLocationsManager();
                     listButton.setEnabled(!locationsManager.getLocationItems().isEmpty());
+                    final AnimationDrawable gpsDetectionImage = (AnimationDrawable) getResources().getDrawable(R.drawable.gps_detection);
                     if (locationsManager.isInitialized()){
+                        gpsDetectionImage.stop();
                         listButton.setImageResource(R.drawable.btn_list);
                     }
                     else{
-                        listButton.setImageResource(android.R.drawable.ic_menu_mylocation);
+                        listButton.setImageDrawable(gpsDetectionImage);
+                        gpsDetectionImage.start();
                     }
 
                     listButton.invalidate();
@@ -144,8 +147,7 @@ public class CompassActivity extends Activity implements ListDialog.Callbacks {
                         progressImage.start();
                     } else {
                         progressImage.stop();
-                        final Drawable updateDrawable = getResources().getDrawable(R.drawable.btn_update);
-                        updateButton.setImageDrawable(updateDrawable);
+                        updateButton.setImageResource(R.drawable.btn_update);
                     }
 
 
