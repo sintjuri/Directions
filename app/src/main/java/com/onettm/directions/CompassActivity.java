@@ -6,12 +6,10 @@ import android.app.Fragment;
 import android.app.FragmentManager;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.graphics.drawable.AnimationDrawable;
 import android.graphics.drawable.Drawable;
 import android.location.LocationManager;
 import android.os.Bundle;
-import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.util.Log;
@@ -35,19 +33,11 @@ import java.util.Observer;
 
 public class CompassActivity extends Activity implements ListDialog.Callbacks {
 
-    private Handler handler;
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
-        loadPref();
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
-        handler = new Handler();
-    }
-
-    public Handler getHandler() {
-        return handler;
     }
 
     @Override
@@ -64,20 +54,6 @@ public class CompassActivity extends Activity implements ListDialog.Callbacks {
         startActivityForResult(intent, 0);
 
         return true;
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        loadPref();
-    }
-
-    private void loadPref() {
-        SharedPreferences mySharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        String zonePreference = mySharedPreferences.getString("pref_radius", "5");
-        //TODO initialize preference
-        //prefCheckBox.setChecked(my_checkbox_preference);
-
     }
 
     @Override
@@ -152,10 +128,10 @@ public class CompassActivity extends Activity implements ListDialog.Callbacks {
                     final LocationsManager locationsManager = DirectionsApplication.getInstance().getLocationsManager();
                     listButton.setEnabled(!locationsManager.getLocationItems().isEmpty());
                     if (locationsManager.isInitialized()){
-                        listButton.setImageResource(android.R.drawable.ic_menu_mylocation);
+                        listButton.setImageResource(R.drawable.btn_list);
                     }
                     else{
-                        listButton.setImageResource(R.drawable.btn_settings);
+                        listButton.setImageResource(android.R.drawable.ic_menu_mylocation);
                     }
 
                     listButton.invalidate();
@@ -336,8 +312,8 @@ public class CompassActivity extends Activity implements ListDialog.Callbacks {
             // get test ads on a physical device. e.g.
             // "Use AdRequest.Builder.addTestDevice("ABCDEF012345") to get test ads on this device."
             AdRequest adRequest = new AdRequest.Builder()
-//                    .addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
-                    .addTestDevice("74760DA0E4A7D8383E8EC5268A2486CF")
+                    .addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
+                    //.addTestDevice("74760DA0E4A7D8383E8EC5268A2486CF")
                     .build();
 
             // Start loading the ad in the background.
