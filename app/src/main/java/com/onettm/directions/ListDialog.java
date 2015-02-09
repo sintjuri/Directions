@@ -7,14 +7,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 import java.util.Collection;
 
 
 public class ListDialog extends DialogFragment {
-    View view;
     ListView listView;
     /**
      * The fragment's current callback object, which is notified of list item
@@ -64,11 +62,13 @@ public class ListDialog extends DialogFragment {
 
         listView.setVisibility(View.VISIBLE);
 
-        listView.setAdapter(new ArrayAdapter<LocationItem>(
+        /*listView.setAdapter(new ArrayAdapter<LocationItem>(
                 getActivity(),
                 android.R.layout.simple_list_item_activated_1,
                 android.R.id.text1, res
-        ));
+        ));*/
+
+        listView.setAdapter(new CompassArrayAdapter(getActivity(), res));
 
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -83,7 +83,7 @@ public class ListDialog extends DialogFragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        view = inflater.inflate(R.layout.fragment_list_dialog, container, false);
+        View view = inflater.inflate(R.layout.fragment_list_dialog, container, false);
         listView = (ListView) view.findViewById(R.id.item_list);
 
         return view;

@@ -109,6 +109,18 @@ public class Data {
         return bearing;
     }
 
+    public float getDestinationBearing(Location targetLocation) {
+
+        float bearing = 0f;
+        if ((location != null) && (targetLocation != null)) {
+            bearing = location.bearingTo(targetLocation);
+        }
+        if(bearing < 0){
+            bearing += 360;
+        }
+        return bearing;
+    }
+
     public float getDestinationDistance() {
         float distance = 0f;
         if ((location != null) && (destinationLocation != null)) {

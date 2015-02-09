@@ -9,13 +9,11 @@
     <string name="settings">Settings</string>
     <string name="cancel">Cancel</string>
     <string name="distance">To %1$s: %2$.0f m</string>
-    <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="defining">Position defining</string>
     <string name="load">Load the list</string>
     <string name="search_button">Search</string>
     <string name="please_select">Please select</string>
     <string name="arriving">You are arrived</string>
-    <string name="banner_ad_unit_id">ca-app-pub-3940256099942544/6300978111</string>
 
     <string name="pref_zone">Searching zone</string>
     <string name="pref_select_zone">Please select searching zone</string>
@@ -35,6 +33,7 @@
     <string name="West">W</string>
     <string name="NorthWest">NW</string>
     <string name="updating">Updating</string>
+    <string name="pref_zone_values">Zones</string>
 
 
 </resources>
