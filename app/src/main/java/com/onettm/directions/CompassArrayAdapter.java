@@ -11,14 +11,16 @@ import android.widget.TextView;
 
 public class CompassArrayAdapter extends BaseAdapter {
 
+    private final Data modelData;
     Context context;
     LocationItem[] data;
     private static LayoutInflater inflater = null;
 
-    public CompassArrayAdapter(Context context, LocationItem[] data) {
+    public CompassArrayAdapter(Context context, LocationItem[] data, Data modelData) {
         // TODO Auto-generated constructor stub
         this.context = context;
         this.data = data;
+        this.modelData = modelData;
         inflater = (LayoutInflater) context
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }
@@ -49,8 +51,7 @@ public class CompassArrayAdapter extends BaseAdapter {
             vi = inflater.inflate(R.layout.row, null);
         ImageView arrow = (ImageView) vi.findViewById(R.id.arrow);
 
-        final Model model = DirectionsApplication.getInstance().getModel();
-        final Data modelData = model.getData();
+
         final float angle = -1*modelData.getPositiveBearing() + modelData.getDestinationBearing(data[position].getLocation()) - modelData.getDeclination();
 
         Matrix matrix = new Matrix();

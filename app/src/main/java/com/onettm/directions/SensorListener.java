@@ -6,6 +6,7 @@
  ******************************************************************************/
 package com.onettm.directions;
 
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -14,7 +15,9 @@ import android.hardware.SensorManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.SystemClock;
 
 public class SensorListener implements SensorEventListener, LocationListener {
 	/** constants **/
@@ -23,9 +26,10 @@ public class SensorListener implements SensorEventListener, LocationListener {
     // The minimum time between updates in milliseconds
     private static final long MIN_TIME_BW_UPDATES = 500;
     private static final int MIN_ACCURACY = 50;
+    private static final long MIN_TIME = 1000000;//1000 sec
 
-	
-	/** variables **/
+
+    /** variables **/
 	private final LocationManager locationManager;
 
 	private final SensorManager sensorManager;
@@ -60,7 +64,23 @@ public class SensorListener implements SensorEventListener, LocationListener {
     }
 
     public boolean isLocationEnoughAccurate(Location location){
-        return location.getAccuracy()>0 && location.getAccuracy()<=MIN_ACCURACY;
+        return location.getAccuracy()>0 && location.getAccuracy()<=MIN_ACCURACY && age_ms(location)<MIN_TIME;
+    }
+
+    public long age_ms(Location last) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1)
+            return age_ms_api_17(last);
+        return age_ms_api_pre_17(last);
+    }
+
+    @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
+    private long age_ms_api_17(Location last) {
+        return (SystemClock.elapsedRealtimeNanos() - last
+                .getElapsedRealtimeNanos()) / 1000000;
+    }
+
+    private long age_ms_api_pre_17(Location last) {
+        return System.currentTimeMillis() - last.getTime();
     }
 
 	public void registerSensors() {
