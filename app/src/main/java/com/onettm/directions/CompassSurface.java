@@ -61,7 +61,9 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
     }
 
     public void pause() {
-        animationThread.standBy();
+        if (animationThread == null) {
+            animationThread.standBy();
+        }
     }
 
     public void resume() {
