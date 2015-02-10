@@ -4,7 +4,7 @@
     android:layout_height="wrap_content"
     android:orientation="horizontal" >
 
-    <ImageView
+    <com.onettm.directions.MyImageView
         android:layout_width="0dp"
         android:id="@+id/arrow"
         android:layout_height="fill_parent" android:src="@drawable/arrow"

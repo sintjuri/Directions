@@ -68,10 +68,7 @@ public class ListDialog extends DialogFragment {
                 android.R.id.text1, res
         ));*/
 
-        final Model model = DirectionsApplication.getInstance().getModel();
-        final Data modelData = model.getData();
-
-        listView.setAdapter(new CompassArrayAdapter(getActivity(), res, model));
+        listView.setAdapter(new CompassArrayAdapter(getActivity(), res));
 
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
