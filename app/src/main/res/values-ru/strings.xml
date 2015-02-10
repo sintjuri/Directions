@@ -3,38 +3,29 @@
 
 
 
-    <string name="app_name">Направления</string>
+    <string name="app_name">Поиск АЗС</string>
     <string name="accelerometer_not_available">Акселерометр не доступен</string>
-    <string name="magnetometer_not_available">магнетометр не доступен</string>
+    <string name="magnetometer_not_available">Магнетометр не доступен</string>
     <string name="gps_settings">Настройки GPS</string>
     <string name="enable_gps">GPS выключен. Вы хотите включить GPS?</string>
     <string name="settings">Настройки</string>
     <string name="cancel">Отменить</string>
-    <string name="distance">До %1$s: %2$.0f м</string>
+    <string name="distance">%2$.0f м до %1$s</string>
     <string name="defining">Определение позиции</string>
-    <string name="load">Загрузить новый список</string>
-    <string name="search_button">Поиск</string>
-    <string name="please_select">Пожалуйста выберите</string>
     <string name="arriving">Вы прибыли в точку назначения</string>
+    <string name="please_select">Выберите заправку</string>
 
-    <string name="pref_select_zone">Выберите пожалуйста зону поиска</string>
+    <string name="pref_select_zone">Выберите зону поиска</string>
     <string name="pref_zone">Зона поиска</string>
-    <string name="near">Близко</string>
-    <string name="middle">Средне</string>
-    <string name="far">Далеко</string>
+    <string name="near">Близко(~5 км)</string>
+    <string name="middle">Средне(~25 км)</string>
+    <string name="far">Далеко(~50 км)</string>
     <string name="update">Обновить</string>
 
-    <string name="North">С</string>
-    <string name="NorthEast">СВ</string>
-    <string name="East">В</string>
-    <string name="SouthEast">ЮВ</string>
-    <string name="South">Ю</string>
-    <string name="SouthWest">ЮЗ</string>
-    <string name="West">З</string>
-    <string name="NorthWest">СЗ</string>
     <string name="show_list">Показать %1$s</string>
     <string name="updating">Обновление</string>
     <string name="pref_zone_values">Доступные зоны</string>
+    <string name="dialog_title">Ближайшие заправки</string>
 
 
 </resources>

@@ -38,7 +38,7 @@ public class MyImageView extends ImageView {
                 handler.postDelayed(this, 1000);
             }
         };
-        handler.postDelayed(runnable, 1000);
+        handler.postDelayed(runnable, 100);
     }
 
     public void removeHandler(){

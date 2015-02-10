@@ -8,32 +8,23 @@
     <string name="enable_gps">GPS is not enabled. Do you want to go to settings menu?</string>
     <string name="settings">Settings</string>
     <string name="cancel">Cancel</string>
-    <string name="distance">To %1$s: %2$.0f m</string>
+    <string name="distance">%2$.0f m to %1$s</string>
     <string name="defining">Position defining</string>
-    <string name="load">Load the list</string>
-    <string name="search_button">Search</string>
     <string name="please_select">Please select</string>
     <string name="arriving">You are arrived</string>
 
     <string name="pref_zone">Searching zone</string>
     <string name="pref_select_zone">Please select searching zone</string>
-    <string name="near">Near</string>
-    <string name="middle">Middle</string>
-    <string name="far">Far</string>
+    <string name="near">Near(~5 km)</string>
+    <string name="middle">Middle(~25 km)</string>
+    <string name="far">Far(~50 km)</string>
     <string name="update">Update</string>
     <string name="show_list">Show %1$s</string>
 
 
-    <string name="North">N</string>
-    <string name="NorthEast">NE</string>
-    <string name="East">E</string>
-    <string name="SouthEast">SE</string>
-    <string name="South">S</string>
-    <string name="SouthWest">SW</string>
-    <string name="West">W</string>
-    <string name="NorthWest">NW</string>
     <string name="updating">Updating</string>
     <string name="pref_zone_values">Zones</string>
+    <string name="dialog_title">Nearest oil stations</string>
 
 
 </resources>

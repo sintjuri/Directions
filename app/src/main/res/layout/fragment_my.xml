@@ -18,7 +18,8 @@
             android:scrollHorizontally="true"
             android:singleLine="true"
             android:textColor="@color/wallet_dim_foreground_inverse_holo_dark"
-            android:textSize="32sp" />
+            android:textSize="24sp"
+            android:padding="10dp" />
     </HorizontalScrollView>
 
     <com.onettm.directions.CompassSurface

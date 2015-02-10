@@ -82,6 +82,7 @@ public class ListDialog extends DialogFragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        getDialog().setTitle(getString(R.string.dialog_title));
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_list_dialog, container, false);
         listView = (ListView) view.findViewById(R.id.item_list);
