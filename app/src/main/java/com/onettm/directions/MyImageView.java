@@ -8,7 +8,7 @@ import android.os.Handler;
 import android.util.AttributeSet;
 import android.widget.ImageView;
 
-class MyImageView extends ImageView {
+public class MyImageView extends ImageView {
 
     private Location targetLocation;
     private Handler handler = new Handler();
