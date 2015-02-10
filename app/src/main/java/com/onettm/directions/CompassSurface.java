@@ -309,7 +309,7 @@ public class CompassSurface extends SurfaceView implements SurfaceHolder.Callbac
             } else {
                 canvas.rotate(compassCurrentBearing * -1, canvasCenterX, canvasCenterY);
                 canvas.drawBitmap(cardImage, null, cardRect, imagePaint);
-                canvas.rotate(data.getDestinationBearing() - data.getDeclination(), canvasCenterX, canvasCenterY);
+                canvas.rotate(data.getDestinationBearing() /*+ data.getDeclination()*/, canvasCenterX, canvasCenterY);
                 canvas.drawBitmap(pointerImage, null, cardRect, imagePaint);
             }
 

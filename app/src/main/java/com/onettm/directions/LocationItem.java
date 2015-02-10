@@ -3,24 +3,15 @@ package com.onettm.directions;
 import android.location.Location;
 
 public class LocationItem {
-    private Location currentLocation;//location of current position of user to define bearing
     private Location location;
     private String name;
 
-    public LocationItem(Location location, String name, Location currentLocation) {
+    public LocationItem(Location location, String name) {
         this.location = location;
         this.name = name;
-        this.currentLocation = currentLocation;
     }
 
-    @Override
-    public String toString() {
-        String result = name;
-        if ((currentLocation != null) && (location != null)) {
-            result = String.format("%4.0f m : %s", currentLocation.distanceTo(location), name);
-        }
-        return result;
-    }
+
 
     public Location getLocation() {
         return location;
@@ -30,9 +21,6 @@ public class LocationItem {
         return name;
     }
 
-    public Location getCurrentLocation() {
-        return currentLocation;
-    }
 
     @Override
     public boolean equals(Object obj) {
@@ -43,11 +31,6 @@ public class LocationItem {
         if (getClass() != obj.getClass())
             return false;
         LocationItem other = (LocationItem) obj;
-        if (currentLocation == null) {
-            if (other.getCurrentLocation() != null)
-                return false;
-        } else if (currentLocation.distanceTo(other.getCurrentLocation())!=0)
-            return false;
         if (location == null) {
             if (other.getLocation() != null)
                 return false;
@@ -66,7 +49,6 @@ public class LocationItem {
         final int prime = 31;
         int result = 1;
         result = prime * result + ((location == null) ? 0 : location.hashCode());
-        result = prime * result + ((currentLocation == null) ? 0 : currentLocation.hashCode());
         result = prime * result + ((name == null) ? 0 : name.hashCode());
         return result;
     }

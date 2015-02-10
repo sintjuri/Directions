@@ -8,8 +8,8 @@ android {
         applicationId "com.onettm.directions"
         minSdkVersion 11
         targetSdkVersion 21
-        versionCode 1
-        versionName "1.0"
+        versionCode 3
+        versionName "Camilla"
     }
     buildTypes {
         release {

@@ -143,7 +143,7 @@ public class LocationsManager extends Observable implements Observer {
                     Location pv = new Location("");
                     pv.setLatitude(lat);
                     pv.setLongitude(lon);
-                    result.add(new LocationItem(pv, name, location));
+                    result.add(new LocationItem(pv, name));
                 }
                 c.close();
 
@@ -167,7 +167,7 @@ public class LocationsManager extends Observable implements Observer {
                     Location pv = new Location("");
                     pv.setLatitude(lat);
                     pv.setLongitude(lon);
-                    LocationItem newItem = new LocationItem(pv, name, location);
+                    LocationItem newItem = new LocationItem(pv, name);
                     LocationItem existingItem = wayNodes.get(way);
                     if (existingItem != null) {
                         if (dc.compare(existingItem, newItem) < 0) continue;

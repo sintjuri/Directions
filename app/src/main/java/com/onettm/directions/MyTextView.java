@@ -1,25 +1,25 @@
 package com.onettm.directions;
 
+
 import android.content.Context;
-import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.location.Location;
 import android.os.Handler;
 import android.util.AttributeSet;
 import android.widget.ImageView;
+import android.widget.TextView;
 
-public class MyImageView extends ImageView implements Handlerable{
+public class MyTextView extends TextView implements Handlerable{
 
-    private Location targetLocation;
+    private LocationItem targetLocationItem;
     private Handler handler = new Handler();
     private Runnable runnable;
 
-    public MyImageView(Context context) {
+    public MyTextView(Context context) {
         super(context);
-
     }
 
-    public MyImageView(Context context, AttributeSet attrs) {
+    public MyTextView(Context context, AttributeSet attrs) {
         super(context, attrs);
     }
 
@@ -29,12 +29,11 @@ public class MyImageView extends ImageView implements Handlerable{
             @Override
             public void run() {
                 Data modelData = DirectionsApplication.getInstance().getModel().getData();
-                final float angle = -1 * modelData.getPositiveBearing() + modelData.getDestinationBearing(targetLocation) /*+ modelData.getDeclination()*/;
-
-                Matrix matrix = new Matrix();
-                setScaleType(ScaleType.MATRIX);   //required
-                matrix.postRotate(angle, getDrawable().getIntrinsicWidth() / 2, getDrawable().getIntrinsicHeight() / 2);
-                setImageMatrix(matrix);
+                String result = "";
+                if ((modelData.getLocation() != null) && (targetLocationItem.getLocation() != null)) {
+                    result = String.format("%4.0f m : %s", modelData.getLocation().distanceTo(targetLocationItem.getLocation()), targetLocationItem.getName());
+                }
+                setText(result);
                 handler.postDelayed(this, 1000);
             }
         };
@@ -47,8 +46,7 @@ public class MyImageView extends ImageView implements Handlerable{
         }
     }
 
-
-    public void setTargetLocation(Location targetLocation) {
-        this.targetLocation = targetLocation;
+    public void setTargetLocationItem(LocationItem targetLocationItem) {
+        this.targetLocationItem = targetLocationItem;
     }
 }

@@ -1,13 +1,10 @@
 package com.onettm.directions;
 
 import android.content.Context;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.ImageView;
-import android.widget.TextView;
 
 public class CompassArrayAdapter extends BaseAdapter {
 
@@ -46,12 +43,14 @@ public class CompassArrayAdapter extends BaseAdapter {
         if (holder == null) {
             holder = new MyViewHolder ();
             vi = LayoutInflater.from(context).inflate(R.layout.row, parent, false);
-            holder.setText((TextView) vi.findViewById(R.id.text));
+            holder.setText((MyTextView) vi.findViewById(R.id.text));
             holder.setArrow((MyImageView)vi.findViewById(R.id.arrow));
             vi.setTag(holder);
         }
 
-        holder.getText().setText(data[position].toString());
+        holder.getText().removeHandler();
+        holder.getText().setTargetLocationItem(data[position]);
+        holder.getText().addHandler();
         holder.getArrow().removeHandler();
         holder.getArrow().setTargetLocation(data[position].getLocation());
         holder.getArrow().addHandler();
