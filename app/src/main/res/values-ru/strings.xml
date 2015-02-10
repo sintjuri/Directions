@@ -32,6 +32,7 @@
     <string name="NorthWest">СЗ</string>
     <string name="show_list">Показать %1$s</string>
     <string name="updating">Обновление</string>
+    <string name="pref_zone_values">Доступные зоны</string>
 
 
 </resources>

@@ -6,6 +6,7 @@
  ******************************************************************************/
 package com.onettm.directions;
 
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -14,38 +15,41 @@ import android.hardware.SensorManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.SystemClock;
 
 public class SensorListener implements SensorEventListener, LocationListener {
-	/** constants **/
+    /** constants **/
     // The minimum distance to change Updates in meters
     private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 1; // 1 meters
     // The minimum time between updates in milliseconds
     private static final long MIN_TIME_BW_UPDATES = 500;
     private static final int MIN_ACCURACY = 50;
-
-	
-	/** variables **/
-	private final LocationManager locationManager;
-
-	private final SensorManager sensorManager;
-	private final Sensor magSensor;
-	private final Sensor accelSensor;
-	private boolean sensorsRegistered; // stores the event listener state
+    private static final long MIN_TIME = 1000000;//1000 sec
 
 
+    /** variables **/
+    private final LocationManager locationManager;
 
-	public void unregisterSensors() {
-		if(sensorsRegistered){
-			// unregister our sensor listeners
-			locationManager.removeUpdates(this);
-			sensorManager.unregisterListener(this, magSensor);
-			sensorManager.unregisterListener(this, accelSensor);
+    private final SensorManager sensorManager;
+    private final Sensor magSensor;
+    private final Sensor accelSensor;
+    private boolean sensorsRegistered; // stores the event listener state
+
+
+
+    public void unregisterSensors() {
+        if(sensorsRegistered){
+            // unregister our sensor listeners
+            locationManager.removeUpdates(this);
+            sensorManager.unregisterListener(this, magSensor);
+            sensorManager.unregisterListener(this, accelSensor);
             Model model = DirectionsApplication.getInstance().getModel();
             model.setStatus(Model.STATUS_INACTIVE);
-			sensorsRegistered = false; // flag the sensors as unregistered
-		}
-	}
+            sensorsRegistered = false; // flag the sensors as unregistered
+        }
+    }
 
     public boolean isAccelerometerAvailable() {
         return accelSensor != null;
@@ -60,11 +64,27 @@ public class SensorListener implements SensorEventListener, LocationListener {
     }
 
     public boolean isLocationEnoughAccurate(Location location){
-        return location.getAccuracy()>0 && location.getAccuracy()<=MIN_ACCURACY;
+        return location.getAccuracy()>0 && location.getAccuracy()<=MIN_ACCURACY && age_ms(location)<MIN_TIME;
     }
 
-	public void registerSensors() {
-		if(!sensorsRegistered) {
+    public long age_ms(Location last) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1)
+            return age_ms_api_17(last);
+        return age_ms_api_pre_17(last);
+    }
+
+    @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
+    private long age_ms_api_17(Location last) {
+        return (SystemClock.elapsedRealtimeNanos() - last
+                .getElapsedRealtimeNanos()) / 1000000;
+    }
+
+    private long age_ms_api_pre_17(Location last) {
+        return System.currentTimeMillis() - last.getTime();
+    }
+
+    public void registerSensors() {
+        if(!sensorsRegistered) {
             // First get location from Network Provider
             if (isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
                 locationManager.requestLocationUpdates(
@@ -92,12 +112,12 @@ public class SensorListener implements SensorEventListener, LocationListener {
                 }
 
             }
-			sensorManager.registerListener(this, magSensor, SensorManager.SENSOR_DELAY_UI);
-			sensorManager.registerListener(this, accelSensor, SensorManager.SENSOR_DELAY_UI);
-			sensorsRegistered = true; // flag the sensors as registered
+            sensorManager.registerListener(this, magSensor, SensorManager.SENSOR_DELAY_UI);
+            sensorManager.registerListener(this, accelSensor, SensorManager.SENSOR_DELAY_UI);
+            sensorsRegistered = true; // flag the sensors as registered
 
 
-		}
+        }
 
         /*if(destinationIsOutdated()){
             destinationName = null;
@@ -111,23 +131,23 @@ public class SensorListener implements SensorEventListener, LocationListener {
 
 
     public void onSensorChanged(SensorEvent event) {
-		// save the data from the sensor
+        // save the data from the sensor
         Model model = DirectionsApplication.getInstance().getModel();
 
         switch(event.sensor.getType()){
-		case Sensor.TYPE_MAGNETIC_FIELD:
-            float[] mgValues = event.values.clone();
-			model.setMagValues(mgValues);
+            case Sensor.TYPE_MAGNETIC_FIELD:
+                float[] mgValues = event.values.clone();
+                model.setMagValues(mgValues);
 
-			break;
-		case Sensor.TYPE_ACCELEROMETER:
-			model.setAccelValues(event.values.clone());
-			break;
-		}
-	}
-	
-	public void onAccuracyChanged(Sensor sensor, int accuracy) {
-	}
+                break;
+            case Sensor.TYPE_ACCELEROMETER:
+                model.setAccelValues(event.values.clone());
+                break;
+        }
+    }
+
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+    }
 
     @Override
     public void onLocationChanged(Location location) {
@@ -152,13 +172,13 @@ public class SensorListener implements SensorEventListener, LocationListener {
     }
 
     public SensorListener(Context context) {
-		// initialize variables
+        // initialize variables
         Model model = DirectionsApplication.getInstance().getModel();
         locationManager = (LocationManager)context.getSystemService(Context.LOCATION_SERVICE);
-		sensorManager = (SensorManager)context.getSystemService(Context.SENSOR_SERVICE);
-		magSensor = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
-		accelSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-		sensorsRegistered = false;
-		model.setStatus(Model.STATUS_INACTIVE);
-	}
+        sensorManager = (SensorManager)context.getSystemService(Context.SENSOR_SERVICE);
+        magSensor = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+        accelSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        sensorsRegistered = false;
+        model.setStatus(Model.STATUS_INACTIVE);
+    }
 }
