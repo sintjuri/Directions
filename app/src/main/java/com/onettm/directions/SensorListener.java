@@ -26,7 +26,7 @@ public class SensorListener implements SensorEventListener, LocationListener {
     // The minimum time between updates in milliseconds
     private static final long MIN_TIME_BW_UPDATES = 500;
     private static final int MIN_ACCURACY = 50;
-    private static final long MIN_TIME = 1000000;//1000 sec
+    private static final long MIN_TIME = 60000;//60 sec
 
 
     /** variables **/
