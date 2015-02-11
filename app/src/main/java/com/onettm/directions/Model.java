@@ -2,8 +2,8 @@ package com.onettm.directions;
 
 import android.hardware.GeomagneticField;
 import android.location.Location;
+import android.os.Looper;
 
-import java.util.Date;
 import java.util.Observable;
 
 
@@ -30,6 +30,9 @@ public class Model extends Observable{
     private long cachTime = 0;
 
     public Data getCachedData(){
+        if(BuildConfig.DEBUG && Looper.getMainLooper().getThread() == Thread.currentThread()) {
+            throw new AssertionError("Should be called in UI Thread only");
+        }
         if (System.currentTimeMillis() - cachTime>CACHE_AGE){
             cache = getData();
             cachTime = System.currentTimeMillis();
