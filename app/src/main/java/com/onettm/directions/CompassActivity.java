@@ -270,6 +270,8 @@ public class CompassActivity extends Activity implements ListDialog.Callbacks {
                                 Vibrator v = (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE);
                                 // Vibrate for 500 milliseconds
                                 v.vibrate(500);
+                                model.setDestinationName(null);
+                                model.setDestinationLocation(null);
                             }
                         } else {
                             textOutput.setText(getString(R.string.please_select));

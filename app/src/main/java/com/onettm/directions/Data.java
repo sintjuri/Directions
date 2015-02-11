@@ -133,6 +133,10 @@ public class Data {
         this.destinationLocation = destinationLocation;
     }
 
+    public Location getDestinationLocation(){
+        return destinationLocation;
+    }
+
     public void setAccelValues(float[] accelValues) {
         this.accelValues = accelValues;
     }
