@@ -30,7 +30,7 @@ public class Model extends Observable{
     private long cachTime = 0;
 
     public Data getCachedData(){
-        if(BuildConfig.DEBUG && Looper.getMainLooper().getThread() == Thread.currentThread()) {
+        if(BuildConfig.DEBUG && Looper.getMainLooper().getThread() != Thread.currentThread()) {
             throw new AssertionError("Should be called in UI Thread only");
         }
         if (System.currentTimeMillis() - cachTime>CACHE_AGE){
