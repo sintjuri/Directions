@@ -82,10 +82,9 @@ public class CompassActivity extends Activity implements ListDialog.Callbacks {
             listButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    //surface.pauseAnimation();
-                    Log.d("PROCESS!!", "listButton.setOnClickListener");
-                    openListLocations();
-                    //surface.resumeAnimation();
+                     if (listDialog == null || !listDialog.isVisible()){
+                        openListLocations();
+                    }
                 }
             });
 
@@ -93,7 +92,6 @@ public class CompassActivity extends Activity implements ListDialog.Callbacks {
             updateButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Log.d("PROCESS!!", "updateButton.setOnClickListener");
                     DirectionsApplication.getInstance().getLocationsManager().invalidate();
                 }
             });
@@ -325,8 +323,8 @@ public class CompassActivity extends Activity implements ListDialog.Callbacks {
             // get test ads on a physical device. e.g.
             // "Use AdRequest.Builder.addTestDevice("ABCDEF012345") to get test ads on this device."
             AdRequest adRequest = new AdRequest.Builder()
-                    //.addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
-                    //.addTestDevice("74760DA0E4A7D8383E8EC5268A2486CF")
+                    .addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
+                    .addTestDevice("74760DA0E4A7D8383E8EC5268A2486CF")
                     .build();
 
             // Start loading the ad in the background.
