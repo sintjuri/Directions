@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.TextView;
 
 public class CompassArrayAdapter extends BaseAdapter {
 
@@ -43,14 +44,17 @@ public class CompassArrayAdapter extends BaseAdapter {
         if (holder == null) {
             holder = new MyViewHolder ();
             vi = LayoutInflater.from(context).inflate(R.layout.row, parent, false);
-            holder.setText((MyTextView) vi.findViewById(R.id.text));
+            holder.setText((TextView) vi.findViewById(R.id.text));
             holder.setArrow((MyImageView)vi.findViewById(R.id.arrow));
             vi.setTag(holder);
         }
 
-        holder.getText().removeHandler();
-        holder.getText().setTargetLocationItem(data[position]);
-        holder.getText().addHandler();
+        Data modelData = DirectionsApplication.getInstance().getModel().getCachedData();
+        String result = "";
+        if ((modelData.getLocation() != null) && (data[position]!=null) && (data[position].getLocation() != null)) {
+            result = String.format("%4.0f m : %s", modelData.getLocation().distanceTo(data[position].getLocation()), data[position].getName());
+        }
+        holder.getText().setText(result);
         holder.getArrow().removeHandler();
         holder.getArrow().setTargetLocation(data[position].getLocation());
         holder.getArrow().addHandler();

@@ -10,7 +10,7 @@
         android:layout_height="fill_parent" android:src="@drawable/arrow"
         android:layout_gravity="left" android:layout_weight="3"/>
 
-    <com.onettm.directions.MyTextView
+    <TextView
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:id="@+id/text"

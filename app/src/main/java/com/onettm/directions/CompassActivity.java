@@ -4,12 +4,13 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Fragment;
 import android.app.FragmentManager;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.drawable.AnimationDrawable;
-import android.graphics.drawable.Drawable;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Vibrator;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.util.Log;
@@ -70,6 +71,7 @@ public class CompassActivity extends Activity implements ListDialog.Callbacks {
         private ImageButton listButton;
         private ImageButton settingsButton;
         private ImageButton updateButton;
+        private ListDialog listDialog;
 
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -110,7 +112,7 @@ public class CompassActivity extends Activity implements ListDialog.Callbacks {
 
         private void openListLocations() {
             if (DirectionsApplication.getInstance().getModel().getData().getLocation() != null) {
-                ListDialog listDialog = new ListDialog();
+                listDialog = new ListDialog();
                 FragmentManager fm = getFragmentManager();
                 listDialog.show(fm, "list_dialog");
             } else {
@@ -161,6 +163,9 @@ public class CompassActivity extends Activity implements ListDialog.Callbacks {
         public void onPause() {
             super.onPause();
             DirectionsApplication.getInstance().getLocationsManager().deleteObserver(buttonsUpdater);
+            if (listDialog!=null){
+                listDialog.dismiss();
+            }
         }
     }
 
@@ -170,7 +175,7 @@ public class CompassActivity extends Activity implements ListDialog.Callbacks {
 
         private SensorListener compass;
         private TextView textOutput;
-        private Observer textOutputUpdater;
+        private Observer modelUpdater;
 
         public PlaceholderFragment() {
         }
@@ -238,7 +243,7 @@ public class CompassActivity extends Activity implements ListDialog.Callbacks {
         @Override
         public void onPause() {
             // unregister from the directions to prevent undue battery drain
-            DirectionsApplication.getInstance().getModel().deleteObserver(textOutputUpdater);
+            DirectionsApplication.getInstance().getModel().deleteObserver(modelUpdater);
             compass.unregisterSensors();
             DirectionsApplication.getInstance().getLocationsManager().cancel();
             // stop the animation
@@ -254,7 +259,7 @@ public class CompassActivity extends Activity implements ListDialog.Callbacks {
             // register to receive events from the directions
             compass.registerSensors();
             surface.resume();
-            textOutputUpdater = new Observer() {
+            modelUpdater = new Observer() {
                 @Override
                 public void update(Observable observable, Object data) {
                     Model model = DirectionsApplication.getInstance().getModel();
@@ -262,6 +267,12 @@ public class CompassActivity extends Activity implements ListDialog.Callbacks {
                     if (dataModel.getLocation() != null) {
                         if (dataModel.getDestinationDistance() > 0) {
                             textOutput.setText(getString(R.string.distance, dataModel.getDestinationName(), dataModel.getDestinationDistance()));
+                            if (dataModel.getDestinationDistance() < DirectionsApplication.getInstance().getSettings().getMinDistanceToTarget()){
+                                Toast.makeText(getActivity(), R.string.arriving, Toast.LENGTH_LONG).show();
+                                Vibrator v = (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE);
+                                // Vibrate for 500 milliseconds
+                                v.vibrate(500);
+                            }
                         } else {
                             textOutput.setText(getString(R.string.please_select));
                         }
@@ -271,7 +282,7 @@ public class CompassActivity extends Activity implements ListDialog.Callbacks {
                 }
             };
 
-            DirectionsApplication.getInstance().getModel().addObserver(textOutputUpdater);
+            DirectionsApplication.getInstance().getModel().addObserver(modelUpdater);
             if (!compass.isAccelerometerAvailable()) {
                 new AlertDialog.Builder(getActivity())
                         .setMessage(R.string.accelerometer_not_available)

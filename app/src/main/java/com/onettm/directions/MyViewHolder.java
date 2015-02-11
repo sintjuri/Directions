@@ -3,14 +3,14 @@ package com.onettm.directions;
 import android.widget.TextView;
 
 public class MyViewHolder {
-    private MyTextView text;
+    private TextView text;
     private MyImageView arrow;
 
-    public MyTextView getText() {
+    public TextView getText() {
         return text;
     }
 
-    public void setText(MyTextView text) {
+    public void setText(TextView text) {
         this.text = text;
     }
 

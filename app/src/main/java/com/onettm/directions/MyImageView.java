@@ -28,7 +28,7 @@ public class MyImageView extends ImageView implements Handlerable{
 
             @Override
             public void run() {
-                Data modelData = DirectionsApplication.getInstance().getModel().getData();
+                Data modelData = DirectionsApplication.getInstance().getModel().getCachedData();
                 final float angle = -1 * modelData.getPositiveBearing() + modelData.getDestinationBearing(targetLocation) /*+ modelData.getDeclination()*/;
 
                 Matrix matrix = new Matrix();

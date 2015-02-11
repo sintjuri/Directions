@@ -3,6 +3,7 @@ package com.onettm.directions;
 import android.hardware.GeomagneticField;
 import android.location.Location;
 
+import java.util.Date;
 import java.util.Observable;
 
 
@@ -12,6 +13,7 @@ public class Model extends Observable{
     public static final int STATUS_INTERFERENCE = 1;
     public static final int STATUS_INACTIVE = 2;
     private static final float MAGNETIC_INTERFERENCE_THRESHOLD_MODIFIER = 1.05f;
+    private static final long CACHE_AGE = 1000;
 
     private float[] magValues;
     private float[] accelValues;
@@ -23,6 +25,17 @@ public class Model extends Observable{
 
     private volatile String destinationName;
     private volatile Location destinationLocation;
+
+    private Data cache = new Data();
+    private long cachTime = 0;
+
+    public Data getCachedData(){
+        if (System.currentTimeMillis() - cachTime>CACHE_AGE){
+            cache = getData();
+            cachTime = System.currentTimeMillis();
+        }
+        return cache;
+    }
 
     public synchronized Data getData(){
 
