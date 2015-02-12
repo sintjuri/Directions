@@ -37,6 +37,7 @@ public class CompassActivity extends Activity implements ListDialog.Callbacks {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
+        DirectionsApplication.getInstance().loadPref(PreferenceManager.getDefaultSharedPreferences(this));
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
     }
 

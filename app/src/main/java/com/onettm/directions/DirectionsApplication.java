@@ -1,7 +1,10 @@
 package com.onettm.directions;
 
 import android.app.Application;
+import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
+import android.preference.PreferenceManager;
+import android.util.Log;
 
 import com.onettm.directions.data.DirDataHelper;
 import com.onettm.directions.data.LocationsManager;
@@ -44,13 +47,24 @@ public class DirectionsApplication extends Application {
         return model;
     }
 
+    public void loadPref(SharedPreferences mySharedPreferences) {
+        String zonePreference = mySharedPreferences.getString("pref_radius", "5");
+        try{
+            int result = Integer.parseInt(zonePreference);
+            DirectionsApplication.getInstance().getSettings().setSearchRadius(result*1000);
+        }catch (Exception e){
+            Log.e("cannot parse strint to int", e.getMessage());
+        }
+
+    }
+
     public Settings getSettings() {
         return settings;
     }
 
     public static class Settings {
         private final int decisionExpirationDistance = 1000; //meters
-        private final int searchRadius = 5000; //meters
+        private int searchRadius = 5000; //meters
         private final int minDistanceToTarget = 30; //meters
 
         public int getDecisionExpirationDistance() {
@@ -59,6 +73,10 @@ public class DirectionsApplication extends Application {
 
         public int getSearchRadius() {
             return searchRadius;
+        }
+
+        public void setSearchRadius(int searchRadius) {
+            this.searchRadius = searchRadius;
         }
 
         public int getMinDistanceToTarget() {
