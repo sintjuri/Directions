@@ -243,9 +243,8 @@ public class CompassActivity extends Activity implements ListDialog.Callbacks {
             DirectionsApplication.getInstance().getModel().deleteObserver(modelUpdater);
             compass.unregisterSensors();
             DirectionsApplication.getInstance().getLocationsManager().cancel();
-            // stop the animation
             surface.pause();
-            // call the superclass
+            DirectionsApplication.getInstance().getModel().updateLocation(null);
             super.onPause();
         }
 
