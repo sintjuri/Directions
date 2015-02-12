@@ -13,7 +13,9 @@ import com.onettm.directions.Model;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.Set;
@@ -88,8 +90,8 @@ public class LocationsManager extends Observable implements Observer {
                     publishProgress();
                     Set<LocationItem> result = request(params[0]);
                     if (!locations.containsAll(result)) {
-                        ArrayList<LocationItem> res = new ArrayList<LocationItem>(result);
-                        DistanceComparator<LocationItem> dc = new DistanceComparator<LocationItem>(params[0]);
+                        List<LocationItem> res = new ArrayList<>(result);
+                        Comparator<LocationItem> dc = new DistanceComparator<>(params[0]);
                         Collections.sort(res, dc);
 
                         locations = Collections.unmodifiableCollection(res);
@@ -119,7 +121,7 @@ public class LocationsManager extends Observable implements Observer {
 
             private Set<LocationItem> request(Location location) {
 
-                DistanceComparator<LocationItem> dc = new DistanceComparator<LocationItem>(location);
+                Comparator<LocationItem> dc = new DistanceComparator<>(location);
 
                 long longitudeSide = Math.round(getLongitudeDegreesByDistance(location, DirectionsApplication.getInstance().getSettings().getSearchRadius()) * 10000000);
                 long latitudeSide = Math.round(getLatitudeDegreesByDistance(location, DirectionsApplication.getInstance().getSettings().getSearchRadius()) * 10000000);
@@ -134,7 +136,7 @@ public class LocationsManager extends Observable implements Observer {
                         "and node.lon > %d and node.lon < %d ", cur_lat - latitudeSide, cur_lat + latitudeSide, cur_lon - longitudeSide, cur_lon + longitudeSide), null);
 
                 c.moveToFirst();
-                Set<LocationItem> result = new HashSet<LocationItem>();
+                Set<LocationItem> result = new HashSet<>();
                 while (c.moveToNext()) {
                     if (isCancelled()) throw new CancellationException();
                     String name = c.getString(0);
@@ -156,7 +158,7 @@ public class LocationsManager extends Observable implements Observer {
                         "and node.lon > %d and node.lon < %d ", cur_lat - latitudeSide, cur_lat + latitudeSide, cur_lon - longitudeSide, cur_lon + longitudeSide), null);
 
                 c2.moveToFirst();
-                SparseArray<LocationItem> wayNodes = new SparseArray<LocationItem>();
+                SparseArray<LocationItem> wayNodes = new SparseArray<>();
 
                 while (c2.moveToNext()) {
                     if (isCancelled()) throw new CancellationException();
@@ -234,6 +236,14 @@ public class LocationsManager extends Observable implements Observer {
         hiLoc.setLongitude(hi);
         float d = loLoc.distanceTo(hiLoc);
         return meters * (1 / d);
+    }
+
+    public void setLocations(List<LocationItem> locations) {
+        this.locations = locations;
+    }
+
+    public void setDecisionLocation(Location decisionLocation) {
+        this.decisionLocation = decisionLocation;
     }
 
     static class DistanceComparator<L extends LocationItem> implements java.util.Comparator<L> {

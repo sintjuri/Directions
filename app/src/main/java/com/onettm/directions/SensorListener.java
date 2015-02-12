@@ -85,6 +85,7 @@ public class SensorListener implements SensorEventListener, LocationListener {
 
 	public void registerSensors() {
 		if(!sensorsRegistered) {
+            Model model = DirectionsApplication.getInstance().getModel();
             // First get location from Network Provider
             if (isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
                 locationManager.requestLocationUpdates(
@@ -94,7 +95,6 @@ public class SensorListener implements SensorEventListener, LocationListener {
                 Location location = locationManager
                         .getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
                 if ((location != null)&&(isLocationEnoughAccurate(location))) {
-                    Model model = DirectionsApplication.getInstance().getModel();
                     model.updateLocation(location);
                 }
             }
@@ -107,7 +107,6 @@ public class SensorListener implements SensorEventListener, LocationListener {
                 Location location = locationManager
                         .getLastKnownLocation(LocationManager.GPS_PROVIDER);
                 if ((location != null)&&(isLocationEnoughAccurate(location))) {
-                    Model model = DirectionsApplication.getInstance().getModel();
                     model.updateLocation(location);
                 }
 
