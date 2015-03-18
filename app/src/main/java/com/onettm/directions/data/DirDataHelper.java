@@ -11,7 +11,7 @@ import com.readystatesoftware.sqliteasset.SQLiteAssetHelper;
  */
 public class DirDataHelper {
 
-    private static final int DATABASE_VERSION = 2;
+    private static final int DATABASE_VERSION = 3;
 
     public static SQLiteDatabase getDb() {
         return DbHolder.db;
@@ -21,7 +21,7 @@ public class DirDataHelper {
         private static final SQLiteDatabase db;
 
         static{
-            SQLiteAssetHelper sah = new SQLiteAssetHelper(DirectionsApplication.getInstance(), "osm.db", null, DATABASE_VERSION);
+            SQLiteAssetHelper sah = new SQLiteAssetHelper(DirectionsApplication.getInstance(), "android_fuel.db", null, DATABASE_VERSION);
             sah.setForcedUpgrade();
             db = sah.getReadableDatabase();
         }

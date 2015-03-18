@@ -8,8 +8,8 @@ android {
         applicationId "com.onettm.directions"
         minSdkVersion 11
         targetSdkVersion 21
-        versionCode 4
-        versionName "Diana"
+        versionCode 6
+        versionName "Faina"
     }
     buildTypes {
         release {

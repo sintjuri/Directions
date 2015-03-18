@@ -28,6 +28,8 @@ import java.util.concurrent.CancellationException;
 public class LocationsManager extends Observable implements Observer {
 
     private final com.onettm.directions.DirectionsApplication.Settings settings = DirectionsApplication.getInstance().getSettings();
+
+    private final static String NONAME = "Без названия";
     private Collection<LocationItem> locations = Collections.unmodifiableCollection(Collections.<LocationItem>emptyList());
     private volatile boolean valid = true;
     private Location lastLocation;
@@ -128,18 +130,20 @@ public class LocationsManager extends Observable implements Observer {
 
                 long cur_lat = (long) (location.getLatitude() * 10000000);
                 long cur_lon = (long) (location.getLongitude() * 10000000);
-                Cursor c = DirectionsApplication.getInstance().getDb().rawQuery(String.format("select tag.v, node.lat, node.lon from node \n" +
-                        "join tag_node on node.id=tag_node.node\n" +
-                        "join tag on tag.id=tag_node.tag\n" +
-                        "where tag.k='name'\n" +
-                        "and node.lat > %d and node.lat < %d \n" +
-                        "and node.lon > %d and node.lon < %d ", cur_lat - latitudeSide, cur_lat + latitudeSide, cur_lon - longitudeSide, cur_lon + longitudeSide), null);
+                Cursor c = DirectionsApplication.getInstance().getDb().rawQuery(String.format(
+                        "select node_tags.v, nodes.lat, nodes.lon from nodes \n" +
+                        "left join node_tags on nodes.id=node_tags.node_id and node_tags.k='name' \n" +
+                        "where nodes.lat > %d and nodes.lat < %d \n" +
+                        "and nodes.lon > %d and nodes.lon < %d ", cur_lat - latitudeSide, cur_lat + latitudeSide, cur_lon - longitudeSide, cur_lon + longitudeSide), null);
 
                 c.moveToFirst();
                 Set<LocationItem> result = new HashSet<>();
                 while (c.moveToNext()) {
                     if (isCancelled()) throw new CancellationException();
                     String name = c.getString(0);
+                    if (name==null){
+                        name = NONAME;
+                    }
                     double lat = c.getDouble(1) / 10000000;
                     double lon = c.getDouble(2) / 10000000;
                     Location pv = new Location("");
@@ -149,13 +153,13 @@ public class LocationsManager extends Observable implements Observer {
                 }
                 c.close();
 
-                Cursor c2 = DirectionsApplication.getInstance().getDb().rawQuery(String.format("select tag.v, node.lat, node.lon, way.id from node \n" +
-                        "join way on way.id = node.way\n" +
-                        "join tag_way on way.id = tag_way.way\n" +
-                        "join tag on tag.id=tag_way.tag\n" +
-                        "where tag.k='name'\n" +
-                        "and node.lat > %d and node.lat < %d \n" +
-                        "and node.lon > %d and node.lon < %d ", cur_lat - latitudeSide, cur_lat + latitudeSide, cur_lon - longitudeSide, cur_lon + longitudeSide), null);
+                Cursor c2 = DirectionsApplication.getInstance().getDb().rawQuery(String.format(
+                        "select way_tags.v, nodes.lat, nodes.lon, ways.id " +
+                        "from ways left join way_tags on ways.id = way_tags.way_id and way_tags.k='name' " +
+                        "inner join way_nodes on ways.id = way_nodes.way_id " +
+                        "inner join nodes on way_nodes.node_id = nodes.id where "+
+                        "nodes.lat > %d and nodes.lat < %d \n" +
+                        "and nodes.lon > %d and nodes.lon < %d ", cur_lat - latitudeSide, cur_lat + latitudeSide, cur_lon - longitudeSide, cur_lon + longitudeSide), null);
 
                 c2.moveToFirst();
                 SparseArray<LocationItem> wayNodes = new SparseArray<>();
@@ -163,6 +167,9 @@ public class LocationsManager extends Observable implements Observer {
                 while (c2.moveToNext()) {
                     if (isCancelled()) throw new CancellationException();
                     String name = c2.getString(0);
+                    if (name==null){
+                        name = NONAME;
+                    }
                     double lat = c2.getDouble(1) / 10000000;
                     double lon = c2.getDouble(2) / 10000000;
                     Integer way = c2.getInt(3);
